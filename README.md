@@ -28,7 +28,7 @@ The contributors of this project reserve all rights.
 
 This compendium is based on the textbook "Algorithms", by Robert Sedgewick and Kevin Wayne (4th edition, 2011). No content is directly taken from the book.
 
-The contributor @palpatine, contributed directly through the Overleaf share function. He contributed a substantial part of this compendium, but all commits were made through my github.
+The contributor https://github.com/palpatine, contributed directly through the Overleaf share function. He contributed a substantial part of this compendium, but all commits were made through my github.
 
 ## Disclaimer
 
