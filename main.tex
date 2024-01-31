@@ -1,14 +1,257 @@
 \documentclass{article}
 \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath} % Math
+\usepackage{listings} % Required for inserting code
+\usepackage{xcolor}   % Required for custom colors
+\usepackage{color}
+\usepackage{svg}    % Required for rendering svgs
+\usepackage{float}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage{minted}
 
 \title{Algorithms and Data Structures}
-\author{nlej }
-\date{January 2024}
+\author{Nicolas Lejeune, Peter Iatsenia }
+\date{Spring 2024}
+
+\setminted[python]{breaklines, framesep=2mm, fontsize=\footnotesize, numbersep=5pt}
 
 \begin{document}
 
 \maketitle
 
-\section{Introduction}
+\tableofcontents
+
+\pagebreak
+
+\section*{Preface}
+This is a compressed note compendium based on the textbook: "Algorithms", Robert Sedgewick \& Kevin Wayne, 4th edition, 2011." For public use for students following the Spring 2024 Algorithms and Data Structures course.
+
+\section{Union Find}
+\paragraph{}
+The Union-Find, also known as the Disjoint-Set Data Structure, is used to manage a collection of disjoint (non-overlapping) sets. It provides two main operations:
+
+\begin{itemize}
+    \item \textbf{Union}: It combines two sets into one, typically merging the sets containing two elements into a single set.
+    \item \textbf{Find}: It determines which set an element belongs to and identifies a representative element for that set.
+\end{itemize}
+
+The primary goal of the Union-Find algorithm is to efficiently answer queries about the connectivity or equivalence of elements. 
+
+\subsection{Dynamic Connectivity}
+Dynamic connectivity involves processing a sequence of integer pairs, each representing a connection between elements. The connection is an equivalence relation, meaning it's: 
+
+\begin{itemize}
+    \item \textbf{Symmetric}: mutual, $p$ is connected to $q$ and $q$ is connected to $p$, \hfill \break 
+    $p \iff q$
+    \item \textbf{Transitive}: indirectly connecting through others, $p$ connected to $r$ through $q$, since $q$ connected to $r$, \hfill \break 
+    $p \to q$, and $q \to r$, so $p \to r$
+    \item \textbf{Reflexive}: self-connected, $p$ connected to $p$, \hfill \break 
+    $p \iff p$
+\end{itemize}
+
+The goal is to identify and ignore redundant pairs in this sequence. When a new pair $p$, $q$ is read, it should only be written to the output if $p$ and $q$ are not already connected.
+
+An equivalence relation splits the elements into distinct "connected components", where any element within the connected component is connected to every other, either directly or transitively.
+
+\subsection{Quick-union}
+
+For the quick-union algorithm implementation, the core idea is to represent each set by a tree, where each element points to a parent element within the same set. The root of each tree is a representative (or leader) of the set. Union operations simply link the root of one tree to another, effectively merging two sets. Find operations trace the path of an element up to the root of its tree, identifying the set it belongs to. 
+
+\subsubsection*{Python Implementation}
+
+\begin{minted}{python}
+class QuickUnion:
+    # A class implementing the Quick Union version of Union-Find.
+
+    def __init__(self, n: int) -> None:
+        # Initialize the union-find structure with n elements.
+        # Each element forms its own set at the beginning.
+        self._parent = list(range(n))  # Parent of each element, initially itself.
+        self._count = n  # Keep track of the number of sets. Initially, it's the number of elements.
+
+    def union(self, p: int, q: int) -> None:
+        # Merge the sets containing elements p and q.
+        root_p = self.find(p)  # Find root of p.
+        root_q = self.find(q)  # Find root of q.
+        
+        if root_p != root_q:  # Merge only if they are in different sets.
+            # Not weighted (q's root always becomes p's root's parent).
+            self._parent[root_p] = root_q  # Make the root of p point to root of q. 
+            self._count -= 1  # Decrease the number of sets, as 2 sets become 1 (union).
+
+    def find(self, p: int) -> int:
+        # Find the root of the set containing element p.
+        while p != self._parent[p]:  # Traverse until p is its own parent; aka keep going "up" until root is found.
+            p = self._parent[p]
+        return p  # Return the root of p.
+
+    def connected(self, p: int, q: int) -> bool:
+        # Check if elements p and q are in the same set.
+        return self.find(p) == self.find(q)  # True if roots of p and q are same.
+
+    def count(self) -> int:
+        # Return the number of distinct sets; aka connected components.
+        return self._count
+\end{minted}
+
+\subsection{Weighted quick-union}
+
+Weighted quick-union is an improvement over the basic quick-union algorithm, aimed at optimizing the performance of the union operation. In this approach, the data structure still maintains a tree representation for each set, but it also keeps track of the size of each tree. When performing a union operation, instead of arbitrarily connecting the root of one set to the root of another, the smaller tree is attached to the larger one. This balancing strategy prevents the formation of excessively long paths in the tree, which can happen in the basic quick-union. As a result, both the find and union operations become more efficient, especially for large datasets, as the trees are more flat and require fewer steps to traverse.
+
+\begin{minted}{python}
+class WeightedQuickUnion:
+    def __init__(self, n: int) -> None:
+        # Initialize with n elements, each in its own set.
+        self._parent = list(range(n))  # Parent link for each element.
+        self._size = [1] * n  # Size of component for roots (1 for each element initially).
+        self._count = n  # Keep track of the number of sets.
+
+    def union(self, p: int, q: int) -> None:
+        # Merge sets containing p and q.
+        root_p = self.find(p)
+        root_q = self.find(q)
+
+        # If roots are same, they are already connected.
+        if root_p == root_q:
+            return
+
+        # Attach smaller tree to larger one.
+        if self._size[root_p] < self._size[root_q]:
+            self._parent[root_p] = root_q
+            self._size[root_q] += self._size[root_p]
+        else:
+            self._parent[root_q] = root_p
+            self._size[root_p] += self._size[root_q]
+            
+        self._count -= 1 # Decrease the number of sets
+        
+    def find(self, p: int) -> int:
+        # Find the root of the set containing p.
+        while p != self._parent[p]:
+            p = self._parent[p]
+        return p
+
+    def connected(self, p: int, q: int) -> bool:
+        # Check if p and q are in the same set.
+        return self.find(p) == self.find(q)
+    
+    def count(self) -> int:
+        # Return the number of distinct sets; aka connected components.
+        return self._count
+\end{minted}
+
+\subsection{Weighted quick-union with path compression}
+
+Weighted Quick Union with Path Compression is a further enhancement of the union-find data structure, combining the advantages of the Weighted Quick Union and Path Compression techniques. This combination results in an even more efficient data structure for union and find operations. Path Compression optimizes the tree structure by flattening it during the find operation. When finding the root of an element, path compression makes every other node in the path point directly to the root, thereby reducing the path length for future operations.
+
+\begin{minted}{python}
+class WeightedPathCompressionQuickUnion:
+    def __init__(self, n: int) -> None:
+        # Initialize n elements, each in its own set.
+        self._parent = list(range(n))  # Parent link for each element.
+        self._size = [1] * n  # Size of the tree rooted at each element.
+        self._count = n  # Keep track of the number of sets.
+
+    def union(self, p: int, q: int) -> None:
+        # Merge sets containing p and q.
+        root_p = self.find(p)
+        root_q = self.find(q)
+
+        # If roots are same, they are already connected.
+        if root_p == root_q:
+            return
+
+        # Attach the smaller tree to the root of the larger tree.
+        if self._size[root_p] < self._size[root_q]:
+            self._parent[root_p] = root_q
+            self._size[root_q] += self._size[root_p]
+        else:
+            self._parent[root_q] = root_p
+            self._size[root_p] += self._size[root_q]
+            
+        self._count -= 1 # Decrease the number of sets
+        
+    def find(self, p: int) -> int:
+        # Find the root of the set containing p, with path compression.
+        root = p
+        while root != self._parent[root]:
+            root = self._parent[root]
+        while p != root:
+            # Path compression: Make each node point directly to the root.
+            newp = self._parent[p]
+            self._parent[p] = root
+            p = newp
+        return root
+
+    def connected(self, p: int, q: int) -> bool:
+        # Check if p and q are in the same set.
+        return self.find(p) == self.find(q)
+    
+    def count(self) -> int:
+        # Return the number of distinct sets; aka connected components.
+        return self._count
+\end{minted}
+
+\subsection{Quick-find}
+
+Quick-Find is another implementation. It emphasizes quick operations for determining if two elements are in the same set, at the expense of slower union operations. In Quick-Find, instead of having a tree, each element in the data structure has an associated id, and two elements are considered to be in the same set if and only if they have the same id. During initialization, each element is put in its own set with a unique id.
+
+\subsubsection*{Python Implementation}
+
+\begin{minted}{python}
+class QuickFind:
+    def __init__(self, n: int) -> None:
+        # Initialize with n elements. Each element is in a separate set initially.
+        self._id = list(range(n))  # The id array where each element is its own root.
+        self._count = n  # Keep track of the number of sets.
+
+    def union(self, p: int, q: int) -> None:
+        # Merge the sets containing p and q.
+        p_id = self._id[p]  # Find the identifier for p.
+        q_id = self._id[q]  # Find the identifier for q.
+
+        # If they are already in the same set, nothing to do.
+        if p_id == q_id:
+            return
+
+        # Merge the sets: Set the id of all elements with id of p to id of q.
+        for i in range(len(self._id)):
+            if self._id[i] == p_id:
+                self._id[i] = q_id
+        
+        self._count -= 1 # Decrease the number of sets
+
+    def find(self, p: int) -> int:
+        # Find the identifier of the set containing p.
+        return self._id[p]
+
+    def connected(self, p: int, q: int) -> bool:
+        # Check if p and q are in the same set.
+        return self._id[p] == self._id[q]
+    
+    def count(self) -> int:
+        # Return the number of distinct sets; aka connected components.
+        return self._count
+
+\end{minted}
+
+\subsection{Comparing efficiencies}
+\begin{center}
+\begin{tabular}{||c c c c||} 
+ \hline
+ Algorithm & Constructor & Union & Find \\ [0.5ex] 
+ \hline\hline
+ Quick-find & $N$ & $N$ & $1$ \\ 
+ \hline
+ Quick-union & $N$ & tree height & tree height \\
+ \hline
+ Weighted quick-union & $N$ & $\log{N}$ & $\log{N}$ \\
+ \hline
+ Weighted quick-union with path compression & $N$ & $\approx{1}$ but always $>1$ & $\approx{1}$ but always $>1$  \\
+ \hline
+\end{tabular}
+\end{center}
 
 \end{document}
