@@ -6,7 +6,8 @@ This repository contains a compressed note compendium based on the textbook "Alg
 
 ## Contents
 
-- `main.tex`: LaTeX source file for the compendium.\
+- `main.tex`: LaTeX source file for the compendium.
+- `notebooks/`: Directory containing Jupyter notebooks for python code referenced in the compendium
 
 ## How to Use
 
