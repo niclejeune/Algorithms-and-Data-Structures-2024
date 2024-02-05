@@ -30,14 +30,14 @@ This is a compressed note compendium based on the textbook: "Algorithms", Robert
 
 \section{Union Find}
 \paragraph{}
-The Union-Find, also known as the Disjoint-Set Data Structure, is used to manage a collection of disjoint (non-overlapping) sets. It provides two main operations:
+The Union-Find, also known as the Disjoint-Set data type, is used to manage a collection of disjoint (non-overlapping) sets. It provides two main operations:
 
 \begin{itemize}
     \item \textbf{Union}: It combines two sets into one, typically merging the sets containing two elements into a single set.
     \item \textbf{Find}: It determines which set an element belongs to and identifies a representative element for that set.
 \end{itemize}
 
-The primary goal of the Union-Find algorithm is to efficiently answer queries about the connectivity or equivalence of elements. 
+The primary goal of the Union-Find data type is to efficiently answer queries about the connectivity or equivalence of elements. 
 
 \subsection{Dynamic Connectivity}
 Dynamic connectivity involves processing a sequence of integer pairs, each representing a connection between elements. The connection is an equivalence relation, meaning it's: 
@@ -57,7 +57,7 @@ An equivalence relation splits the elements into distinct "connected components"
 
 \subsection{Quick-union}
 
-For the quick-union algorithm implementation, the core idea is to represent each set by a tree, where each element points to a parent element within the same set. The root of each tree is a representative (or leader) of the set. Union operations simply link the root of one tree to another, effectively merging two sets. Find operations trace the path of an element up to the root of its tree, identifying the set it belongs to. 
+For the quick-union data structure implementation, the core idea is to represent each set by a tree, where each element points to a parent element within the same set. The root of each tree is a representative (or leader) of the set. Union operations simply link the root of one tree to another, effectively merging two sets. Find operations trace the path of an element up to the root of its tree, identifying the set it belongs to. 
 
 \subsubsection*{Python Implementation}
 
@@ -98,7 +98,7 @@ class QuickUnion:
 
 \subsection{Weighted quick-union}
 
-Weighted quick-union is an improvement over the basic quick-union algorithm, aimed at optimizing the performance of the union operation. In this approach, the data structure still maintains a tree representation for each set, but it also keeps track of the size of each tree. When performing a union operation, instead of arbitrarily connecting the root of one set to the root of another, the smaller tree is attached to the larger one. This balancing strategy prevents the formation of excessively long paths in the tree, which can happen in the basic quick-union. As a result, both the find and union operations become more efficient, especially for large datasets, as the trees are more flat and require fewer steps to traverse.
+Weighted quick-union is an improvement over the basic quick-union data structure, aimed at optimizing the performance of the union operation. In this approach, the data structure still maintains a tree representation for each set, but it also keeps track of the size of each tree. When performing a union operation, instead of arbitrarily connecting the root of one set to the root of another, the smaller tree is attached to the larger one. This balancing strategy prevents the formation of excessively long paths in the tree, which can happen in the basic quick-union. As a result, both the find and union operations become more efficient, especially for large datasets, as the trees are more flat and require fewer steps to traverse.
 
 \begin{minted}{python}
 class WeightedQuickUnion:
@@ -241,7 +241,7 @@ class QuickFind:
 \begin{center}
 \begin{tabular}{||c c c c||} 
  \hline
- Algorithm & Constructor & Union & Find \\ [0.5ex] 
+ Data Structure & Constructor & Union & Find \\ [0.5ex] 
  \hline\hline
  Quick-find & $N$ & $N$ & $1$ \\ 
  \hline
