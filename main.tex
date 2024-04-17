@@ -10,6 +10,9 @@
 \usepackage{amsthm}
 \usepackage[utf8]{inputenc}
 \usepackage{minted}
+\usepackage{hyperref} 
+\usepackage{multicol}
+\usepackage{tabularx}
 
 \title{Algorithms and Data Structures}
 \author{Nicolas Lejeune, Peter Iatsenia }
@@ -253,5 +256,1504 @@ class QuickFind:
  \hline
 \end{tabular}
 \end{center}
+
+\section{Stacks and Queues}
+\paragraph{}
+A stack is a Last-In-First-Out (LIFO) data structure where the last element added to the stack is the first one to be removed.
+
+A queue is a First-In-First-Out (FIFO) data structure where the first element added is the first one to be removed.
+
+\subsection{Linked Lists}
+
+Linked lists are used to store collections of elements in a sequential manner. Unlike arrays, linked lists consist of nodes where each node contains a data value and a reference (or link) to the next node in the sequence. This structure allows for efficient insertion and deletion of elements, as these operations do not require shifting elements, just the reassignment of pointers or links.
+
+\paragraph{Advantages}
+
+\begin{itemize}
+    \item \textbf{Dynamic size}: Unlike arrays, linked lists can grow or shrink in size dynamically, making efficient use of memory.
+    \item \textbf{Efficient Insertions/Deletions}: Adding or removing elements from a linked list is efficient because it only involves changing a few links, without shifting elements as in an array.
+\end{itemize}
+
+\paragraph{Disadvantages}
+
+\begin{itemize}
+    \item \textbf{Direct Access}: Linked lists do not allow direct access to elements by their position. To access an element, you must traverse the list from the beginning.
+    \item \textbf{Memory Overhead}: Each node in a linked list requires extra memory for the link to the next node (and the previous node in doubly linked lists).
+\end{itemize}
+
+\subsection{Stack data type}
+
+A stack is a data type which can be implemented as a linked list or an array. It is a LIFO (last-in-first-out) data type, so the last added element to the stack is the first one to be removed - essentially, the last added element is always "on top".
+
+\paragraph{Methods}
+\begin{itemize}
+    \item \textbf{Push}: Add an element to the top of the stack
+    \item \textbf{Pop}: Remove and return the element at the top of the stack
+    \item \textbf{Is empty}: Check if the stack is empty
+\end{itemize}
+
+\subsubsection{Stack data structure - Linked List}
+
+A linked list stack data structure uses a linked list to represent a stack. Whenever an element is added, it's set as the head of the stack, and is linked to the previous head.
+
+\paragraph{Python implementation}
+
+\begin{minted}{python}
+class LinkedListStack:
+    first = None # The head/top of the stack
+    
+    class Node:
+        def __init__(self):
+            self.item = None
+            self.next = None
+
+    def push(self, item): # Add an item to the top of the stack
+        oldfirst = self.first
+        self.first = Node()
+        self.first.item = item
+        self.first.next = oldfirst
+            
+    def pop(self): # Remove and return the element at the top of the stack
+        item = first.item
+        self.first = self.first.next
+        return item
+
+     def is_empty(self): # Check if the stack is empty
+        return self.first is None
+\end{minted}
+
+\subsubsection{Stack data structure - Array}
+
+When using an array, it is important to resize it appropriately. In this course, the convention is to double the size whenever the array is full, and half the size whenever it's $\frac {1} {2}$ empty. If you know the maximum size of your stack in advance, you can use a fixed-capacity array instead, without the resize method.
+
+\begin{minted}{python}
+class ArrayStack:
+
+    def __init__(self):
+        self.a = [None]
+        self.n = 0
+        
+    def __resize(self, capacity):
+        copy = [None] * capacity
+        for i in range(self.n):
+            copy[i] = self.a[i]
+        self.a = copy
+
+    def push(self, item):
+        s = self.s
+        if self.n == len(s):
+            self.__resize(2 * len(s))
+        s[self.n] = item
+        self.n += 1
+        
+    def pop(self):
+        self.n -= 1
+        item = self.a[self.n]
+        self.a[self.n] = None
+        if self.n > 0 and self.n <= len(self.a)//4: 
+            self.__resize(len(self.a)//2)
+        return item
+
+    def is_empty(self):
+        return self.n == 0
+\end{minted}
+
+\subsection{Queue data type}
+
+A queue is very similar to a stack. However, it is FIFO (first-in-first-out), thus some extra considerations are needed.
+
+\subsubsection{Queue data structure - Linked list}
+
+This implementation is almost identical to the Linked List Stack, but it also keeps track of the last (tail) element, and push links the tail to the new element rather than linking the new element to the head.
+
+\begin{minted}{python}
+class LinkedListQueue:
+    first = None  # The head/front of the queue
+    last = None   # The tail/end of the queue
+    
+    class Node:
+        def __init__(self, item=None):
+            self.item = item
+            self.next = None
+
+    def push(self, item):  # Add an item to the end of the queue
+        oldlast = self.last
+        self.last = self.Node(item)
+        if self.is_empty():
+            self.first = self.last
+        else:
+            oldlast.next = self.last
+            
+    def pop(self):  # Remove and return the element at the front of the queue
+        if self.is_empty():
+            return None
+        item = self.first.item
+        self.first = self.first.next
+        if self.is_empty():
+            self.last = None  # If queue is empty after dequeue, reset last to None
+        return item
+
+    def is_empty(self):  # Check if the queue is empty
+        return self.first is None
+
+\end{minted}
+
+\subsubsection{Queue data structure - Array}
+
+This implementation is similar to that of the linked list array data structure, but it keeps track of the front as it's a queue, and when resizing it starts copying from the first element, not the beginning of the old array, to prevent the elements from "drifting to the right" as seen in the lecture.
+
+\begin{minted}{python}
+class ArrayQueue:
+    def __init__(self):
+        self.a = [None] * 1
+        self.n = 0
+        self.front = 0  # Points to the front of the queue
+
+    def __resize(self, capacity):
+        copy = [None] * capacity
+        for i in range(self.n):
+            copy[i] = self.a[(self.front + i) % len(self.a)]
+        self.a = copy
+        self.front = 0  # Reset front to 0 after resizing
+
+    def enqueue(self, item):
+        if self.n == len(self.a):
+            self.__resize(2 * len(self.a))
+        back = (self.front + self.n) % len(self.a)  # Calculate new back position
+        self.a[back] = item
+        self.n += 1
+        
+    def dequeue(self):
+        if self.is_empty():
+            return None
+        item = self.a[self.front]
+        self.a[self.front] = None  # Avoid wasting memory
+        self.front = (self.front + 1) % len(self.a)
+        self.n -= 1
+        if 0 < self.n <= len(self.a) // 4:
+            self.__resize(len(self.a) // 2)
+        return item
+
+    def is_empty(self):
+        return self.n == 0
+
+\end{minted}
+
+\section{Analysis of Algorithms}
+
+There are two methods of analysing algorithm running time. 
+
+\begin{itemize}
+ \item \textbf{Experimental analysis}, which involves executing the algorithm, often a million times or more, to determine the average time it takes for various input sizes ($n$).
+ \item \textbf{Mathematical models}, which assign constant running time to basic operations (i.e. array access), and count the frequency for all the operations based on $n$.
+\end{itemize}
+
+\subsection{Experimental analysis}
+
+The key idea of experimental analysis is to run the program with the algorithm for various input sizes ($n$) and measure the running time. 
+
+The simplest way to do this is by using the UNIX time command, followed by the command to execute the program, which will give you the:
+\begin{itemize}
+ \item \textbf{Real time}: total time taken to run the program.
+ \item \textbf{User time}: time spent running the program
+ \item \textbf{System time}: time spent setting up (i.e. loading Python)
+\end{itemize}
+
+You can also do this in Jupyter as we saw in our Introduction to Data Structure and Programming course.
+
+To model running time through experimental analysis, an approach is to double the input size $n$ several times, and take the ratio between the running times, as well as $log_2$ ratio
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+n & time (seconds) & ratio & log$_2$ ratio \\ \hline
+250 & 0 &  & - \\ \hline
+500 & 0 & 4.8 & 2.3 \\ \hline
+1000 & 0.1 & 6.9 & 2.8 \\ \hline
+2000 & 0.8 & 7.7 & 2.9 \\ \hline
+4000 & 6.4 & 8 & 3.0 \\ \hline
+8000 & 51.1 & 8 & 3.0 \\ \hline
+\end{tabular}
+\caption{Doubling Hypothesis}
+\label{Doubling Hypothesis}
+\end{table}
+
+The $log_2$ ratio should eventually converge, and then we get $b=log_2(\text{ratio})$ for $t=an^b$ where $t$ is running time and $a$ can be estimated using by dividing $\frac {t} {n^b}$ from the observations.
+
+The issue with this type of analysis is that it can be highly system dependent. Algorithm run-times can vary hugely from one system to another, and for longer running algorithms meant for large $n$ this can take a lot of time.
+
+\subsection{Mathematical models}
+
+Mathematical models provide an alternative approach for analysing algorithms. 
+
+In order to actually estimate running time, we assign running times (in nano-seconds) to each operation, like this:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{operation} & \textbf{example} & \textbf{nanoseconds} \\ \hline
+variable declaration & int a & $c_1$   \\ \hline
+assignment statement & a = b & $c_2$ \\ \hline
+integer compare & a < b & $c_3$ \\ \hline
+array element access & a[i] & $c_4$ \\ \hline
+array length & a.length & $c_5$ \\ \hline
+1D array allocation & new int[n] & $c_6$$n$ \\ \hline
+2D array allocation & new int[n][n] & $c_6$$n^2$ \\ \hline
+\end{tabular}
+\caption{Cost of basic operations}
+\label{Cost of basic operations}
+\end{table}
+
+Then, we can count the frequency of each operation in our algorithm, and multiply it by the running time. Summing these sums, we can get an idea of the total running time of the algorithm for $n$ input size, and compare it to other algorithms.
+
+However, a much more practical approach is to measure the growth rate - a measure how much the algorithm's run time grows with $n$ (relatively), not the absolute run time.
+
+There are 3 order of growth definitions relevant for this course:
+
+\begin{itemize}
+ \item \textbf{Asymptotically equal}: Let $f, g: \mathbb{R} \rightarrow \mathbb{R}$. Then we say $f$ is asymptotically equal to $g$, symbolically $f~g$, if $\lim\limits_{x\rightarrow \infty} \frac {f(x)} {g(x)} = 1$
+ \item \textbf{Linearly dominated}: Let $f, g: X \rightarrow \mathbb{R}$. Then we say $f$ is linearly dominated by $g$, symbolically $f \in O(g)$, if $\exists C>0$ $\forall x \in X$ $f(x) \leq C \cdot g(x)$
+ \item \textbf{Linearly Bound}:  Let $f, g: X \rightarrow \mathbb{R}$. Then we say $f$ is linearly bound by $g$, symbolically $f \in \Theta(g)$, if $\exists B,C>0$ $\forall x \in X$ $B \cdot g(x) \leq f(x) \leq C \cdot g(x)$
+\end{itemize}
+
+\begin{table}[ht]
+\centering
+\begin{tabularx}{\textwidth}{|c|c|X|X|X|X|} % Define columns: 2 for the first two entries, 4 for the sub-columns of the third main column
+\hline
+\textbf{Notation} & \textbf{Definition-ish}& \multicolumn{4}{c}{\textbf{Properties for $n \geq 2$}} \\ % Span the header of the third column across 4 sub-columns
+\hline
+& & \small Additive lower order term & \small Multiple constant & \small Lower vs higher & \small Higher vs lower \\
+\hline
+$f \sim g$ & $f(n)/g(n) \to 1$ & $n^2 + n \sim n^2$ & $3n \not\sim n$ & $n \not\sim n^2$ & $n^2 \not\sim n$ \\
+\hline
+$f \approx g$, $f\in\mathcal{O}(g)$ & $Bg(x)\leq f(x)\leq Cg(x)$ & $n^2 + n \sim n^2$ & $3n \not\sim n$ & $n \not\sim n^2$ & $n^2 \not\sim n$ \\
+\hline
+\end{tabularx}
+\caption{Example table with horizontal spanning in the third column}
+\label{table:multicolumn}
+\end{table}
+
+\subsubsection{Common order of growth classifications}
+
+\textbf{INSERT TABLE FROM P26 SLIDES}
+
+\section{Sorting, Mergesort}
+
+Sorting involves comparing and exchanging items, using minimal extra memory. The efficiency of sorting algorithms is measured by counting compares and exchanges, and the algorithms work with any data type that can be compared with total order. This section sets the foundational rules for understanding and implementing basic sorting algorithms.
+
+Total order means that comparisons are:
+
+\begin{itemize}
+    \item \textbf{Reflexive}: for all $v$, $v=v$
+    \item \textbf{Antisymmetric}: for all $v$ and $w$, if ($v<w$) then ($w>v$); and if ($v=w$) then ($w=v$)
+    \item \textbf{Transitive}: for all $v$, $w$, and $x$, if ($v\leq w$) and ($w \leq x$), then $v \leq x$
+\end{itemize}
+
+In Python, you can make a class comparable by implementing the special methods \verb|__lt__| (less than), \verb|__eq__| (equal to), and optionally other comparison methods (\verb|__le__|, \verb|__gt__|, \verb|__ge__|, \verb|__ne__|) within your class. These methods will allow Python to understand how to compare instances of your class with each other, allowing you to sort them.
+
+Here's an example, for comparing a person's age:
+
+\begin{minted}{python}
+class Person:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    def __lt__(self, other):
+        return self.age < other.age
+
+    def __eq__(self, other):
+        return self.age == other.age
+
+# Example usage
+person1 = Person("Alice", 30)
+person2 = Person("Bob", 25)
+print(person1 < person2)  # False
+print(person1 == person2)  # False
+\end{minted}
+
+\subsection{Selection Sort}
+
+
+Selection sort works by dividing the list into two parts: a sorted section at the beginning and an unsorted section for the rest. Initially, the sorted section is empty, and the unsorted section is the entire list. The algorithm repeatedly:
+
+\begin{itemize}
+    \item Selects the smallest element from the unsorted section
+    \item Moves it to the end of the sorted section.
+\end{itemize}
+
+This process involves scanning the unsorted section to find the minimum element and then swapping it with the element at the first unsorted position. The scan is performed with an inner loop that compares each element to the current minimum, while an outer loop moves the boundary between the sorted and unsorted sections.
+ 
+The mathematical analysis of selection sort reveals that it has a quadratic running time, specifically $\Theta(n^2)$, because each element is compared with each other element through nested loops. Despite this, selection sort is efficient in terms of data movement, requiring only one swap per pass through the list, and it uses only a small, fixed amount of extra storage space ($\Theta(1)$), making it an in-place sorting algorithm.
+
+Here's a Python implementation:
+\begin{minted}{python}
+def selection_sort(people):
+    # Get the number of people in the list
+    n = len(people)
+    # Outer loop: move through each position in the list
+    for i in range(n):
+        # Assume the minimum is the first unsorted item
+        min_index = i
+        # Inner loop: find the index of the minimum element
+        for j in range(i+1, n):
+            # Check if current item is less than the assumed minimum
+            if people[j] < people[min_index]:
+                # Update min_index if a new minimum is found
+                min_index = j
+        # Swap the found minimum element with the first unsorted position
+        people[i], people[min_index] = people[min_index], people[i]
+
+# Example usage
+people = [Person("Alice", 30), Person("Bob", 25), Person("Charlie", 20)]
+selection_sort(people)
+# Print sorted list to verify the result
+for person in people:
+    print(f"{person.name}: {person.age}")
+\end{minted}
+
+\subsection{Insertion Sort}
+
+Insertion sort involves building a sorted array, element by element, by comparing each new/unsorted element to those already sorted. It works similarly to how one might sort a hand of playing cards, picking cards one by one and placing them in the correct position relative to the already sorted cards in hand. 
+
+Similar to selection sort, insertion sort involves two sections of the array: the sorted section, which initially contains just the first element, and the unsorted section, which contains the rest. The algorithm picks each element from the unsorted section and finds its correct position in the sorted section, shifting the larger sorted elements to the right to make room.
+
+This method is efficient for small datasets or datasets that are already mostly sorted because it minimizes the number of comparisons and shifts needed. Mathematically, insertion sort has an average and worst-case time complexity of $O(n^2)$, where n is the number of items being sorted. Despite this, its simplicity and the fact that it's an in-place sort, requiring no additional storage, make it a useful algorithm for certain scenarios.
+
+Here's a Python implementation:
+\begin{minted}{python}
+def insertion_sort(people):
+    for i in range(1, len(people)):
+        key = people[i]
+        j = i - 1
+        while j >= 0 and people[j] > key:
+            people[j + 1] = people[j]
+            j -= 1
+        people[j + 1] = key
+
+# Example usage
+people = [Person("Alice", 30), Person("Bob", 25), Person("Charlie", 20)]
+insertion_sort(people)
+for person in people:
+    print(f"{person.name}: {person.age}")
+\end{minted}
+
+\subsection{Merge Sort  }
+Mergesort is a divide-and-conquer algorithm that efficiently sorts an array by dividing it into two halves, sorting each half recursively, and merging the sorted halves. It operates in \(O(N \log N)\) time for \(N\) items but requires \(O(N)\) extra space.
+
+The merging process, which is central to mergesort, combines two ordered subarrays into one larger ordered array. The algorithm applies this process recursively: dividing an array into two halves, sorting each half (recursively), and then merging the sorted halves. Despite its efficiency, a significant drawback of mergesort is its additional space requirement, which is proportional to the size of the array.
+
+An advanced approach attempts to implement an in-place merge to minimize space usage. This in-place method aims to sort the array without allocating additional space for merging by rearranging elements within the original array. However, the complexity of designing an efficient in-place merge is significantly higher than the straightforward approach that uses auxiliary space.
+
+The `merge` method signature `merge(a, lo, mid, hi)` is crucial, merging two ordered subarrays within `a`, from `a[lo..mid]` and `a[mid+1..hi]`, to ensure the merged result is in `a[lo..hi]`. The merging step involves copying the subarray into an auxiliary array and then combining them back into the original array, handling cases where either half is exhausted or selecting the smaller current item from both halves.
+
+The recursive structure of mergesort is foundational for proving its capability to sort: if it can sort both halves of an array, then merging these sorted halves results in a fully sorted array. This recursive strategy also facilitates the analysis of its runtime, characteristic of divide-and-conquer algorithms, at \(O(N \log N)\).
+
+To optimize mergesort, strategies include using insertion sort for small subarrays, checking for pre-sorted conditions to avoid unnecessary merges, and eliminating the need for copying to auxiliary arrays, which can enhance performance.
+
+The implementation of top-down mergesort is as follows:
+
+\begin{verbatim}
+public class Merge {
+    private static Comparable[] aux; // Auxiliary array for merges
+
+    public static void sort(Comparable[] a) {
+        aux = new Comparable[a.length]; // Allocate space just once
+        sort(a, 0, a.length - 1);
+    }
+
+    private static void sort(Comparable[] a, int lo, int hi) {
+        if (hi <= lo) return;
+        int mid = lo + (hi - lo) / 2;
+        sort(a, lo, mid); // Sort left half
+        sort(a, mid + 1, hi); // Sort right half
+        merge(a, lo, mid, hi); // Merge results
+    }
+}
+\end{verbatim}
+
+For bottom-up mergesort, the algorithm iterates over the array, merging subarrays of increasing size in a non-recursive fashion. This approach starts with individual elements, then merges pairs, and continues doubling the size of subarrays to merge in each pass. The bottom-up mergesort implementation is:
+
+\begin{verbatim}
+public class MergeBU {
+    private static Comparable[] aux; // Auxiliary array for merges
+
+    public static void sort(Comparable[] a) {
+        int N = a.length;
+        aux = new Comparable[N];
+        for (int sz = 1; sz < N; sz = sz + sz) { // Subarray size
+            for (int lo = 0; lo < N - sz; lo += sz + sz) { // Subarray index
+                merge(a, lo, lo + sz - 1, Math.min(lo + sz + sz - 1, N - 1));
+            }
+        }
+    }
+}
+\end{verbatim}
+
+The abstract in-place merge method, aimed at reducing the extra space requirement, involves more complex logic to sort parts of the array in place and then merge them within the same array. Yhe concept underlines the complexity of designing such an algorithm compared to traditional mergesort that utilizes auxiliary space.
+
+\begin{verbatim}
+public static void merge(Comparable[] a, int lo, int mid, int hi) {
+    // Merge a[lo..mid] with a[mid+1..hi].
+    int i = lo, j = mid+1;
+    for (int k = lo; k <= hi; k++) // Copy a[lo..hi] to aux[lo..hi].
+        aux[k] = a[k];
+    for (int k = lo; k <= hi; k++) // Merge back to a[lo..hi].
+        if (i > mid) a[k] = aux[j++];
+        else if (j > hi) a[k] = aux[i++];
+        else if (less(aux[j], aux[i])) a[k] = aux[j++];
+        else a[k] = aux[i++];
+}
+\end{verbatim}
+
+Overall, while mergesort is asymptotically optimal among comparison-based sorting algorithms, demonstrating that no comparison-based sorting algorithm can guarantee sorting in fewer than \(O(N \log N)\) compares, its optimality does not discount the potential utility of other sorting algorithms under specific conditions, such as limited space availability or particular types of data structures like linked lists.
+
+\section{Priority Queue}
+
+A priority queue is a special type of queue where each element has a "priority" associated with it, and elements are served based on their priority, not just their position in the queue. It's like waiting in a queue where some people have VIP passes; those with higher priority (VIPs) get to leave the queue before those with lower priority, regardless of when they entered.
+
+The binary heap is a common way to implement a priority queue because it's efficient in terms of both time and space. Imagine a binary heap as a pyramid of balls. Each ball represents a queue element, and the position of the ball represents its priority. The pyramid is structured so that each ball is on top of two other balls (except for the ones at the bottom), and the top ball (the "root") has the highest priority (in a max heap) or the lowest priority (in a min heap).
+
+When you add a new element to the queue, it's like adding a new ball to the bottom of the pyramid. If this new ball has a higher priority, it will move up (or "bubble up") until it finds the right spot, ensuring that the rules of the pyramid (heap) are maintained. When you remove the element with the highest priority (like serving the next person in line), you take the top ball off the pyramid and then fix the pyramid by moving balls up from the bottom to fill the gap, ensuring the highest or lowest (depending on max or min heap) remains at the top.
+
+\href{https://visualgo.net/en/heap}{Click here for an interactive binary heap visualization}
+
+\subsection{Binary Heaps}
+
+A binary heap is a complete binary tree, which means it is perfectly balanced, except possibly for the last level, which is filled from left to right. This structure ensures that the heap remains as compact as possible, minimizing the number of levels and thus the paths from any node to the root.
+
+There are two types of binary heaps:
+\begin{itemize}
+    \item \textbf{Min-Heap}: In a min-heap, the value of each node is less than or equal to the values of its children. The root, therefore, contains the minimum element of the heap.
+    \item \textbf{Max-Heap}: In a max-heap, the value of each node is greater than or equal to the values of its children. The root contains the maximum element of the heap.
+\end{itemize}
+
+In a binary heap represented by an array (as it often is), the element at index $i$ usually has it's children at indices $2i$ and $2i+1$ (assuming 1-based indexing, other formats exist).
+
+\subsubsection*{Intuitive Understanding}
+
+Imagine a family tree, but instead of parents and children, think of it as a hierarchy of priorities or values. In this family tree (the binary heap):
+\begin{itemize}
+    \item Every "parent" has at most two "children".
+    \item The entire tree is filled out completely from the top to the bottom and from left to right, except possibly the last row.
+\end{itemize}
+
+Now, for a max-heap:
+\begin{itemize}
+    \item Every parent is older (has a higher priority) than their children. So, the oldest person (highest priority) is always at the top.
+\end{itemize}
+
+For a min-heap:
+\begin{itemize}
+    \item Every parent is younger than their children, so the youngest person is at the top.
+\end{itemize}
+
+\subsubsection*{Operations and Their Intuitions}
+
+\begin{itemize}
+    \item \textbf{Insertion} - New members start at the bottom and "bubble up" through the generations until they find where they belong.
+    \item \textbf{Removal} - When the top member leaves, the most recent member moves to the top and then "bubbles down" until the hierarchy is restored.
+    \item \textbf{Heapify} - Organizing unordered elements into a heap structure, ensuring everyone is in the correct generational level.
+\end{itemize}
+
+\subsubsection*{Why Use Binary Heaps for Priority Queues}
+
+\begin{itemize}
+    \item \textbf{Efficiency}: Both insertion and removal can be done in O(log n) time.
+    \item \textbf{Simplicity}: The binary heap can be efficiently represented as an array, facilitating easy implementation of heap operations.
+\end{itemize}
+
+\subsection{Heapsort}
+
+Heapsort is a comparison-based sorting algorithm that uses a binary heap data structure to create a sorted array or list. It combines the best of both tree-based and array-based algorithms, offering efficient in-place sorting with a worst-case time complexity of O(n log n).
+
+\subsubsection*{Intuitive Understanding:}
+
+Imagine organizing a library of books where you want to arrange the books in ascending order of their publication year. Heapsort does this by first arranging all books in a special order (heap) -- similar to organizing them in piles where each book is either newer or as new as the ones below it. Then, one by one, you take the newest book off the top pile and place it into its final position in the array, reorganizing the remaining books into the special order after each removal.
+
+\subsubsection*{Heapsort Algorithm Steps:}
+
+The heapsort algorithm can be broken down into the following main phases:
+
+\begin{enumerate}
+    \item \textbf{Heap Construction}: This is the process of rearranging the array to satisfy the heap condition. We start from the middle of the array and work our way back to the beginning, using the "sink" operation. This ensures that parents are larger than or equal to their children for a max-heap, establishing the heap order efficiently.
+
+    \item \textbf{Sorting Phase}: Once the heap is constructed, the array is sorted as follows:
+        \begin{enumerate}
+            \item Remove the largest item from the top of the heap (the first element of the array) and swap it with the last element of the heap.
+            \item Reduce the size of the heap by one, effectively removing the element from the heap and placing it in its correct sorted position in the array.
+            \item "Sink" the new root of the heap to restore heap order.
+            \item Repeat this process until the heap is empty, at which point the array is sorted.
+        \end{enumerate}
+\end{enumerate}
+
+Each step is designed to ensure that the heap structure is maintained throughout the sorting process, leading to efficient sort of the array in $O(n \log n)$ time.
+
+\subsubsection*{Why Use Heapsort:}
+\begin{itemize}
+    \item \textbf{Efficiency}: Heapsort allows sorting an array or organizing a priority queue in O(n log n) time, which is as efficient as the best comparison-based sorting algorithms.
+    \item \textbf{Memory Usage}: Heapsort is an in-place algorithm, meaning it requires only a constant amount (O(1)) of additional memory space beyond what is needed for the list or priority queue.
+    \item \textbf{No Worst-case Scenarios}: Unlike quicksort, heapsort does not have worst-case scenarios based on the pivot's position, making it a reliable choice regardless of the initial order of the array or the state of the priority queue.
+\end{itemize}
+
+\subsection{Python implementation}
+
+\subsubsection{Max-heap}
+
+\begin{minted}{python}
+from typing import Generic, TypeVar, List, Optional
+
+# Create a generic type variable for elements in the priority queue
+T = TypeVar('T')
+
+class MaxPQ(Generic[T]):
+    def __init__(self):
+        # Start with an empty heap, using a list to store the elements.
+        # Index 0 is left unused to simplify parent and child calculations.
+        self.pq: List[Optional[T]] = [None]
+        self.n = 0  # Number of elements in the priority queue
+
+    def is_empty(self) -> bool:
+        # The priority queue is empty if there are no elements in it.
+        return self.n == 0
+
+    def size(self) -> int:
+        # Return the number of elements in the priority queue.
+        return self.n
+
+    def insert(self, x: T) -> None:
+        # Add a new element to the end of the list (the bottom of the heap)
+        # and "swim" it up to the correct position to maintain heap order.
+        self.n += 1
+        if len(self.pq) <= self.n:
+            self.pq.append(x)
+        else:
+            self.pq[self.n] = x
+        self.swim(self.n)
+
+    def max(self) -> T:
+        # Return the largest element in the priority queue, which is at the root of the heap.
+        if self.is_empty():
+            raise Exception("Priority queue underflow")
+        return self.pq[1]
+
+    def del_max(self) -> T:
+        # Remove and return the largest item (the root of the heap).
+        # Replace the root with the last item, decrease the size, and "sink" the new root.
+        if self.is_empty():
+            raise Exception("Priority queue underflow")
+        max_item = self.pq[1]
+        self.exch(1, self.n)
+        self.n -= 1
+        self.sink(1)
+        self.pq[self.n + 1] = None  # Avoid loitering
+        return max_item
+
+    def swim(self, k: int) -> None:
+        # Move the element at index k up to its correct position.
+        while k > 1 and self.less(k // 2, k):
+            self.exch(k, k // 2)
+            k = k // 2
+
+    def sink(self, k: int) -> None:
+        # Move the element at index k down to its correct position.
+        while 2 * k <= self.n:
+            j = 2 * k
+            if j < self.n and self.less(j, j + 1):
+                j += 1
+            if not self.less(k, j):
+                break
+            self.exch(k, j)
+            k = j
+
+    def less(self, i: int, j: int) -> bool:
+        # Return True if element at index i is less than element at index j.
+        return self.pq[i] < self.pq[j]
+
+    def exch(self, i: int, j: int) -> None:
+        # Exchange elements at indices i and j.
+        self.pq[i], self.pq[j] = self.pq[j], self.pq[i]
+\end{minted}
+
+\subsubsection{Min-heap}
+
+\begin{minted}{python}
+from typing import Generic, TypeVar, List, Optional
+
+# Create a generic type variable for elements in the priority queue
+T = TypeVar('T')
+
+class MinPQ(Generic[T]):
+    def __init__(self):
+        # Initialize an empty heap with an unused zero index for easier child/parent calculation.
+        self.pq: List[Optional[T]] = [None]  # pq[0] is not used
+        self.n = 0  # Number of elements in the priority queue
+
+    def is_empty(self) -> bool:
+        # Returns True if the priority queue has no elements.
+        return self.n == 0
+
+    def size(self) -> int:
+        # Returns the number of elements in the priority queue.
+        return self.n
+
+    def insert(self, x: T) -> None:
+        # Adds a new element to the priority queue.
+        # Element is initially added to the end and then "swum" up to maintain heap order.
+        self.n += 1  # Increment the size of the heap
+        if len(self.pq) <= self.n:
+            self.pq.append(x)
+        else:
+            self.pq[self.n] = x
+        self.swim(self.n)  # Ensure the heap order
+
+    def min(self) -> T:
+        # Returns the smallest item in the priority queue.
+        if self.is_empty():
+            raise Exception("Priority queue underflow")
+        return self.pq[1]  # The root of the heap, which is the minimum element
+
+    def del_min(self) -> T:
+        # Removes and returns the minimum item from the priority queue.
+        if self.is_empty():
+            raise Exception("Priority queue underflow")
+        min_item = self.pq[1]  # Store the min item to return
+        self.exch(1, self.n)  # Swap the min with the last item
+        self.n -= 1  # Reduce the size of the heap
+        self.sink(1)  # Restore the heap order
+        self.pq[self.n + 1] = None  # Prevent loitering
+        return min_item
+
+    def swim(self, k: int) -> None:
+        # Moves the element at index k up to its correct heap position.
+        while k > 1 and self.greater(k // 2, k):
+            self.exch(k, k // 2)  # Swap with parent
+            k = k // 2  # Move up one level
+
+    def sink(self, k: int) -> None:
+        # Moves the element at index k down to its correct heap position.
+        while 2 * k <= self.n:
+            j = 2 * k  # Child index
+            if j < self.n and self.greater(j, j + 1):  # Find smaller child
+                j += 1
+            if not self.greater(k, j):
+                break
+            self.exch(k, j)  # Swap with the smaller child
+            k = j  # Move down to the child's position
+
+    def greater(self, i: int, j: int) -> bool:
+        # Returns True if element at index i is greater than element at index j.
+        return self.pq[i] > self.pq[j]
+
+    def exch(self, i: int, j: int) -> None:
+        # Swaps the elements at indices i and j.
+        self.pq[i], self.pq[j] = self.pq[j], self.pq[i]
+\end{minted}
+
+\section{Graphs, DFS, and BFS}
+
+Pairwise connections between items are fundamental in various computational applications, prompting questions about connectivity, number of connections, and shortest paths. Graph theory, a critical branch of mathematics, models these situations using graphs, enabling the study of fundamental algorithms for these problems. These algorithms are essential in fields such as mapping, web browsing, electrical circuits, scheduling, commerce, matching, computer networks, software, and social networks, reflecting the diverse applications of graph theory.
+
+Graphs abstract complex systems into nodes (items) and edges (connections), facilitating the analysis and solution of computational problems. Key types of graph models include undirected graphs, digraphs, edge-weighted graphs, and edge-weighted digraphs, each serving different computational needs.
+
+\subsubsection{Graph Types}
+Graphs are categorized into:
+\begin{itemize}
+    \item \textbf{Undirected graphs}: Edges are bidirectional.
+    \item \textbf{Directed graphs (Digraphs)}: Edges have a specified direction.
+    \item \textbf{Edge-weighted graphs}: Edges carry associated weights.
+    \item \textbf{Edge-weighted digraphs}: Directed graphs with weighted edges.
+\end{itemize}
+
+\subsection{Directed Graphs}
+
+Graph theory introduces:
+\begin{itemize}
+    \item \textbf{Path}: A sequence connecting a series of vertices.
+    \item \textbf{Cycle}: A path beginning and ending at the same vertex.
+    \item \textbf{Connected Components}: Isolated subgraphs where any two vertices are connected.
+    \item \textbf{Tree}: An acyclic connected graph.
+    \item \textbf{Bipartite Graphs}: Can divide vertices into two distinct sets with edges crossing between sets only.
+\end{itemize}
+
+
+\subsubsection{Depth-First Search (DFS)}
+DFS explores as far as possible along branches before backtracking. It's implemented recursively or using a stack, ideal for discovering graph structures like connected components and cycles.
+
+\paragraph{Python code for DFS:}
+\begin{minted}{python}
+def dfs(graph, start, visited=None):
+    # If no nodes have been visited yet, create a new set for tracking visited nodes
+    if visited is None:
+        visited = set()
+    # Add the starting node to the set of visited nodes
+    visited.add(start)
+    # Iterate through each neighbor of the starting node
+    for next_node in graph[start] - visited:
+        # Recursively perform DFS on the unvisited neighbors
+        dfs(graph, next_node, visited)
+    # Return the set of visited nodes
+    return visited
+\end{minted}
+
+\subsubsection{Breadth-First Search (BFS)}
+BFS explores all neighbors at the current depth level before moving to the nodes at the next level. It employs a queue ensuring the closest nodes are explored first.
+
+\paragraph{Python code for BFS:}
+\begin{minted}{python}
+from collections import deque  # Import deque for an efficient FIFO queue
+
+def bfs(graph, start):
+    # Initialize a set for visited nodes and a queue for nodes to visit
+    visited, queue = set(), deque([start])
+    # Add the starting node to the set of visited nodes
+    visited.add(start)
+    # Continue looping as long as there are nodes to visit
+    while queue:
+        # Remove and return the leftmost node from the queue
+        vertex = queue.popleft()
+        # Iterate through each neighbor of the current node
+        for neighbour in graph[vertex]:
+            # If the neighbor has not been visited
+            if neighbour not in visited:
+                # Add the neighbor to the set of visited nodes
+                visited.add(neighbour)
+                # Add the neighbor to the queue for subsequent visiting
+                queue.append(neighbour)
+    # Return the set of visited nodes
+    return visited
+\end{minted}
+
+\subsubsection{Anomalies in Graphs}
+Anomalies such as self-loops (edges connecting a vertex to itself) and parallel edges (multiple edges connecting the same two vertices) impact the interpretation and analysis of graphs.
+
+\subsubsection{Graph Representations}
+Graphs can be represented in various forms:
+\begin{itemize}
+    \item \textbf{Adjacency Lists}: A list where each vertex stores a list of adjacent vertices, suitable for sparse graphs.
+    \item \textbf{Edge Lists}: A list of all edges. A second list of vertices may be necessary if this is used.
+    \item \textbf{Adjacency Matrices}: A 2D array where the presence of an edge between vertices is marked, ideal for dense graphs.
+\end{itemize}
+
+\subsubsection{Symbol Graphs}
+Symbol graphs map real-world scenarios to graph models by using strings as vertex names. This approach allows the application of standard graph algorithms to solve problems in domains like social networks or transportation systems.
+
+\subsubsection{Graph Properties}
+
+\begin{itemize}
+    \item \textbf{Eccentricity} of a vertex: This is defined as the greatest distance from the vertex to any other vertex in the graph. In mathematical terms, for a given vertex $v$, the eccentricity $e(v)$ is defined as $e(v) = \max_{u \in V(G)} d(v, u)$ where $d(v, u)$ is the shortest path distance from $v$ to $u$.
+    \item \textbf{Diameter} of the graph: This is the largest eccentricity of any vertex in the graph. Formally, the diameter $d(G)$ of a graph $G$ is $d(G) = \max_{v \in V(G)} e(v)$. It represents the longest shortest path between any two vertices in the graph.
+    \item \textbf{Radius} of the graph: This is the smallest eccentricity of any vertex in the graph. The radius $r(G)$ is defined as $r(G) = \min_{v \in V(G)} e(v)$. It indicates the minimum distance to reach the furthest vertex in the graph from any point.
+    \item \textbf{Center} of the graph: A center is a vertex (or vertices) whose eccentricity is equal to the radius of the graph. Formally, the set of central vertices $C(G)$ is $C(G) = \{v \in V(G) | e(v) = r(G)\}$. A graph can have more than one center.
+    \item \textbf{Girth} of the graph: This represents the length of the shortest cycle contained in the graph. If the graph is acyclic (contains no cycles), then the girth is defined to be infinity. Formally, the girth $g(G)$ is the length of the shortest cycle within the graph, or infinity if no cycles exist.
+\end{itemize}
+
+\subsection{Directed Graphs (Digraphs)}
+
+Directed graphs, or digraphs, have edges with a one-way relationship between two vertices, suitable for modeling various real-world scenarios such as web content structure, scheduling constraints, and social networks. Applications of digraphs are extensive and varied, as illustrated by examples including food webs, internet pages, and financial systems.
+
+\paragraph{Definitions and Properties:}
+\begin{itemize}
+    \item A \textit{directed graph} consists of a set of vertices connected by directed edges, where each edge points from one vertex to another.
+    \item The \textit{outdegree} of a vertex counts its outgoing edges, while the \textit{indegree} counts incoming edges.
+    \item In digraphs, relationships between vertices are not inherently reciprocal, leading to four possible relationships: no direct connection, a one-way link from $v$ to $w$, a one-way link from $w$ to $v$, or bi-directional links.
+    \item A \textit{directed path} follows the direction of edges, and a \textit{directed cycle} is a path that starts and ends at the same vertex without repetition of edges or vertices.
+    \item \textit{Reachability} is a key concept, differing significantly from connectivity in undirected graphs due to the directed nature of paths.
+\end{itemize}
+
+\paragraph{Digraph Representation:}
+The adjacency-list representation extends naturally to digraphs but differs from undirected graphs in that edges are one-sided, simplifying the structure since each directed edge is represented once.
+
+\subsubsection{Key Algorithms and Concepts:}
+\begin{enumerate}
+    \item \textbf{Depth-First Search (DFS) in Digraphs:} Adapted from undirected graphs, used to identify reachability and explore graph structure.
+    \item \textbf{Directed Cycle Detection:} Identifies cycles within digraphs using DFS, crucial for understanding graph structure and for algorithms like topological sorting.
+    \item \textbf{Topological Sorting:} Arranges vertices linearly such that all directed edges point from a vertex earlier in the order to a vertex later in the order, applicable only to Directed Acyclic Graphs (DAGs).
+    \item \textbf{Strong Components:} Defines sets of mutually reachable vertices, with Kosaraju's algorithm efficiently identifying these components using two-pass DFS.
+\end{enumerate}
+
+\subsubsection{Applications and Implications:}
+\begin{itemize}
+    \item Directed graphs can model systems with inherent directionality, significantly impacting the approach and complexity of graph algorithms.
+    \item \textit{Mark-and-sweep garbage collection}, \textit{precedence-constrained scheduling}, and web content organization are practical applications demonstrating the importance of digraph processing.
+    \item The concept of \textit{strong connectivity} leads to the identification of strongly connected components, fundamental in understanding the structure and function of digraphs.
+    \item \textit{Transitive Closure} provides insights into reachability across all pairs of vertices, though efficient computation remains a challenge for large graphs.
+\end{itemize}
+
+\subsubsection{Python Code Examples}
+
+\paragraph{Depth-First Search (DFS) in Digraphs}
+
+\begin{minted}{python}
+# Definition of the Digraph class
+class Digraph:
+    def __init__(self, V):
+        self.V = V
+        self.adj = [[] for _ in range(V)]
+
+    def add_edge(self, v, w):
+        self.adj[v].append(w)  # Add w to v’s list.
+
+# DFS from a single source
+def dfs(G, v, visited):
+    visited[v] = True
+    # For every vertex w adjacent to v in the graph,
+    # if w has not been visited, explore w using DFS.
+    for w in G.adj[v]:
+        if not visited[w]:
+            dfs(G, w, visited)
+
+# Example usage
+V = 5  # Number of vertices
+G = Digraph(V)
+# Add edges: G.add_edge(v, w)
+visited = [False] * V
+dfs(G, 0, visited)  # Start DFS from vertex 0
+\end{minted}
+
+\paragraph{Directed Cycle Detection}
+
+\begin{minted}{python}
+class DirectedCycle:
+    def __init__(self, G):
+        self.marked = [False] * G.V
+        self.edge_to = [None] * G.V
+        self.on_stack = [False] * G.V  # Keep track of vertices on call stack
+        self.cycle = None  # List to store the cycle
+        for v in range(G.V):
+            if not self.marked[v] and self.cycle is None:
+                self.dfs(G, v)
+
+    def dfs(self, G, v):
+        self.on_stack[v] = True
+        self.marked[v] = True
+        for w in G.adj[v]:
+            if self.cycle is not None:
+                return
+            elif not self.marked[w]:
+                self.edge_to[w] = v
+                self.dfs(G, w)
+            elif self.on_stack[w]:
+                # Trace back directed cycle
+                self.cycle = []
+                x = v
+                while x != w:
+                    self.cycle.append(x)
+                    x = self.edge_to[x]
+                self.cycle.append(w)
+                self.cycle.append(v)
+        self.on_stack[v] = False
+
+# Example usage
+G = Digraph(V)
+# Add edges: G.add_edge(v, w)
+cycle_finder = DirectedCycle(G)
+if cycle_finder.cycle:
+    print("Directed cycle found:", cycle_finder.cycle)
+\end{minted}
+
+\paragraph{Topological Sort}
+
+\begin{minted}{python}
+class Topological:
+    def __init__(self, G):
+        self.order = []  # List to store topological order
+        self.marked = [False] * G.V
+        for v in range(G.V):
+            if not self.marked[v]:
+                self.dfs(G, v)
+
+    def dfs(self, G, v):
+        self.marked[v] = True
+        for w in G.adj[v]:
+            if not self.marked[w]:
+                self.dfs(G, w)
+        self.order.insert(0, v)  # Prepend vertex v to topological order
+
+# Example usage
+G = Digraph(V)
+# Add edges: G.add_edge(v, w)
+topological_order = Topological(G).order
+print("Topological order:", topological_order)
+\end{minted}
+
+\paragraph{Kosaraju's Algorithm for Strong Components}
+
+\begin{minted}{python}
+class KosarajuSCC:
+    def __init__(self, G):
+        # First pass: compute reverse postorder of reverse graph
+        reverse_G = G.reverse()
+        order = []
+        visited = [False] * G.V
+        for v in range(reverse_G.V):
+            if not visited[v]:
+                self.dfs(reverse_G, v, visited, order)
+        
+        # Second pass: find strong components
+        visited = [False] * G.V
+        self.id = [None] * G.V  # Component identifiers
+        self.count = 0  # Number of strong components
+        for v in reversed(order):
+            if not visited[v]:
+                self.dfs(G, v, visited, [])
+                self.count += 1
+
+    def dfs(self, G, v, visited, stack):
+        visited[v] = True
+        self.id[v] = self.count
+        for w in G.adj[v]:
+            if not visited[w]:
+                self.dfs(G, w, visited, stack)
+        stack.append(v)
+
+# Example usage
+G = Digraph(V)
+# Add edges: G.add_edge(v, w)
+scc = KosarajuSCC(G)
+print("Number of strong components:", scc.count)
+\end{minted}
+
+Each of these snippets includes the essential methods and properties for their respective algorithms, with extensive comments explaining the steps involved. Note that these implementations assume a basic `Digraph` class structure.
+
+\section{Shortest Paths}
+
+Shortest path problems are fundamental in graph theory, focusing on finding the most efficient route between two nodes in a graph. These problems have vast applications ranging from GPS navigation to network routing and operational research.
+
+\subsection{Formal Problem Definition and Model}
+The shortest path problem involves identifying the lowest-cost path in a graph where costs represent distance, time, or any other quantifiable metric. We utilize edge-weighted directed graphs (digraphs) for modeling, where vertices represent locations and weighted edges represent the connection costs between them.
+
+\subsubsection{Applications in Various Domains}
+Shortest path calculations underpin numerous practical applications:
+\begin{enumerate}
+    \item \textbf{Transportation and Logistics:} Determining the most efficient routes to reduce travel time and fuel consumption.
+    \item \textbf{Telecommunications:} Finding optimal data routing paths to minimize latency or maximize bandwidth.
+    \item \textbf{Financial Algorithms:} In arbitrage trading strategies, identifying the most profitable sequence of currency exchanges.
+    \item \textbf{Project Management:} Sequencing project tasks to minimize overall completion time while honoring dependency constraints.
+\end{enumerate}
+
+\subsection{Detailed Properties of Shortest Paths}
+Understanding shortest paths requires comprehending several key properties and constraints:
+\begin{enumerate}
+    \item \textbf{Path Directionality:} Paths must follow the directed nature of edges.
+    \item \textbf{Weight Interpretation:} Weights may represent various metrics and aren't limited to physical distances.
+    \item \textbf{Reachability:} Some vertices might be unreachable from a given source, resulting in an undefined shortest path.
+    \item \textbf{Negative Weights:} These add complexity, especially when cycles are involved, potentially leading to undefined shortest paths due to infinite negative loops.
+\end{enumerate}
+
+\subsection{Exhaustive Algorithms for Shortest Paths}
+We explore multiple algorithms, each suited to different types of graphs and specific constraints.
+
+\subsubsection{Dijkstra's Algorithm Detailed Steps}
+Dijkstra's algorithm, applicable to graphs with nonnegative weights, proceeds as follows:
+\begin{enumerate}
+    \item Initialize the distance to the source to zero and all other distances to infinity.
+    \item Set the source vertex as current and mark all other vertices unvisited.
+    \item For the current vertex, consider all its unvisited neighbors and calculate their tentative distances through the current vertex. Update the neighbor's distance if smaller.
+    \item Once all neighbors are considered, mark the current vertex as visited and select the unvisited vertex with the smallest tentative distance as the next current vertex.
+    \item Repeat steps 3 and 4 until all vertices are visited.
+\end{enumerate}
+
+\subsubsection{Topological Sorting for DAGs}
+For directed acyclic graphs (DAGs), we can find shortest paths more efficiently:
+\begin{enumerate}
+    \item Perform a topological sort on the graph to order the vertices linearly.
+    \item Initialize distances from the source to all vertices as infinite except the source itself, which should be zero.
+    \item Process each vertex in topological order, updating distances to each vertex from the source based on the currently known shortest paths.
+\end{enumerate}
+
+\subsubsection{Bellman-Ford Algorithm Exploration}
+This algorithm offers a solution for graphs that may contain negative weight edges:
+\begin{enumerate}
+    \item Initialize all distances as infinite except for the source, set to zero.
+    \item For each vertex, apply relaxation to all edges by updating the cost to reach each vertex from the source if a cheaper path is found.
+    \item Repeat the relaxation step for all vertices $V-1$ times, where $V$ is the number of vertices in the graph.
+    \item Perform a final check for negative cycles by applying relaxation once more to all edges; if any distance is updated, a negative cycle exists. The check can also be repeated $V-1$ times, setting distances to all vertices reachable from negative cycles to $-\infty$. 
+\end{enumerate}
+
+\subsection{Real-World Applications and Case Studies}
+\begin{enumerate}
+    \item \textbf{Network Optimization:} Designing minimum cost pathways in networks to ensure efficient data transfer.
+    \item \textbf{Arbitrage Opportunities:} Identifying profit opportunities in currency exchange markets by exploiting cycle detection in conversion rate graphs.
+    \item \textbf{Urban Planning:} Developing efficient public transportation systems and emergency response routes in cities.
+\end{enumerate}
+
+\subsection{Python Code Examples}
+
+\paragraph{Dijkstra's Algorithm}
+
+\begin{minted}{python}
+import heapq
+
+def dijkstra(graph, start):
+    # Initialize distances for all vertices as infinity and source's distance as zero
+    distances = {vertex: float('infinity') for vertex in graph}
+    distances[start] = 0
+
+    # Priority queue to hold vertices for processing
+    priority_queue = [(0, start)]
+    
+    while priority_queue:
+        # Get the vertex with the smallest distance
+        current_distance, current_vertex = heapq.heappop(priority_queue)
+
+        # Visit each neighbor of the current vertex
+        for neighbor, weight in graph[current_vertex].items():
+            distance = current_distance + weight
+
+            # Update distance if a shorter path is found
+            if distance < distances[neighbor]:
+                distances[neighbor] = distance
+                heapq.heappush(priority_queue, (distance, neighbor))
+
+    return distances
+\end{minted}
+
+\paragraph{Topological Sort for DAGs}
+
+\begin{minted}{python}
+def topological_sort(graph):
+    # Dictionary to hold the number of incoming edges for each vertex
+    in_degree = {u: 0 for u in graph}
+    for u in graph:
+        for v in graph[u]:
+            in_degree[v] += 1
+
+    # Queue for holding all vertices with no incoming edge
+    queue = [u for u in graph if in_degree[u] == 0]
+    top_order = []
+
+    while queue:
+        vertex = queue.pop(0)
+        top_order.append(vertex)
+
+        # Decrease in-degree for all neighboring vertices
+        for neighbor in graph[vertex]:
+            in_degree[neighbor] -= 1
+            # If in-degree becomes zero, add it to the queue
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+
+    return top_order
+\end{minted}
+
+\paragraph{Bellman-Ford Algorithm}
+
+\begin{minted}{python}
+def bellman_ford(graph, start):
+    # Initialize distance for all vertices
+    distance = {vertex: float('infinity') for vertex in graph}
+    distance[start] = 0
+
+    # Relax edges repeatedly
+    for _ in range(len(graph) - 1):
+        for vertex in graph:
+            for neighbor, weight in graph[vertex].items():
+                if distance[vertex] + weight < distance[neighbor]:
+                    distance[neighbor] = distance[vertex] + weight
+
+    # Check for negative-weight cycles
+     for _ in range(len(graph) - 1):
+        for vertex in graph:
+            for neighbor, weight in graph[vertex].items():
+                if distance[vertex] + weight < distance[neighbor]:
+                    distance[neighbor] = -float('infinity')
+
+    return distance
+\end{minted}
+
+\section{Symbol Tables}
+
+Symbol tables are a fundamental component in many algorithms, acting as a bridge between keys and values. They support two primary operations:
+\begin{itemize}
+    \item \texttt{put(key, value)}: Inserts a new pair into the table.
+    \item \texttt{get(key)}: Returns the value associated with a given key.
+\end{itemize}
+
+They are used in various applications like database indexing, compiler symbol management, and networking services like DNS lookups.
+
+\subsubsection{Terminology}
+\begin{description}
+    \item[Key] Uniquely identifies an entry in the symbol table
+    \item[Value] The information or data associated with a key
+\end{description}
+
+\subsection{Key Concepts in Symbol Tables} 
+
+Symbol tables generalize arrays by allowing non-integer indexing. This flexibility makes them integral in data structures and algorithms education and in practical software development.
+
+Keys are usually immutable, comparable types to ensure consistency and effectiveness. Common types include strings, integers, and custom objects implementing a Comparable interface.
+
+\subsubsection{Basic API Structure}
+The fundamental operations include:
+\begin{itemize}
+    \item Initialization: Establish a new symbol table.
+    \item Insertion (\texttt{put}): Add new key-value pairs to the table.
+    \item Search (\texttt{get}): Retrieve values based on their keys.
+    \item Deletion (\texttt{delete}): Remove a key-value pair from the table.
+    \item Size (\texttt{size}): Determine the number of key-value pairs.
+    \item Checks (\texttt{contains}, \texttt{isEmpty}): Verify the presence of keys and the emptiness of the table.
+\end{itemize}
+
+\subsection{Implementations}
+\subsubsection{Sequential Search in Linked Lists}
+A straightforward approach where each new key-value pair is added to the front of a linked list. Search involves linearly scanning through the list until the key is found.
+
+\subsubsection{Binary Search in Sorted Arrays}
+Improves on the sequential search by maintaining an ordered array of keys. Search times improve to logarithmic complexity, but insertion can still require linear time due to the need for maintaining order.
+
+\subsubsection*{Comparison}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Implementation} & \textbf{Search Time} & \textbf{Insertion Time} \\
+\hline
+Sequential Search & $O(n)$ & $O(1)$ \\
+Binary Search & $O(\log n)$ & $O(n)$ \\
+\hline
+\end{tabular}
+
+\subsection{Ordered Symbol Tables}
+Support additional operations like finding the smallest or largest key (\texttt{min}, \texttt{max}), locating the nearest keys (\texttt{floor}, \texttt{ceiling}), and rank-based operations (\texttt{select}, \texttt{rank}).
+
+\subsection{Practical Applications and Examples}
+Symbol tables find utility in various domains:
+\begin{itemize}
+    \item \textbf{Dictionaries:} Word definitions linked to terms.
+    \item \textbf{Book Indexing:} Keywords linked to page numbers.
+    \item \textbf{Database Indexing:} Records identified by unique keys.
+    \item \textbf{Networking:} Domain names mapped to IP addresses.
+\end{itemize}
+
+\subsubsection*{Frequency Counter}
+A classic example utilizing symbol tables to count the frequency of words in a document. Challenges include optimizing for different text sizes and languages.
+
+\section{Hash Tables}
+
+Hash Tables utilize a hash function to map identifying values (keys) to specific locations (indices) in an array. Each key-value pair is stored for efficient lookup and retrieval, addressing common use-cases in data storage and retrieval, such as database indexing and caching mechanisms.
+
+\subsection{Key Components}
+\begin{itemize}
+    \item \textbf{Hash Function:} Maps keys to indices in the hash table.
+    \item \textbf{Collisions:} Occurs when two keys hash to the same index.
+    \item \textbf{Collision Resolution Strategies:} Include separate chaining and linear probing.
+\end{itemize}
+
+\subsection{Hash Functions}
+
+A hash function for a hash table should be deterministic, uniformly distributing keys across the table, and should be quick to compute to maintain efficiency.
+
+Examples include extraction of certain digits from numeric keys or modular arithmetic. The choice of hash function can significantly impact the performance of a hash table.
+
+\subsubsection{Collision Resolution Techniques}
+
+\begin{itemize}
+    \item \textbf{Separate Chaining}: Uses a linked list to store multiple key-value pairs at each index. When a collision occurs, the new key-value pair is added to the end of the list at that index.
+    \item \textbf{Linear Probing}: Involves finding the next available slot in the hash table array when a collision occurs. This method introduces the concept of clustering, where consecutive slots become filled, leading to longer search times.
+\end{itemize}
+
+\subsection{Performance Analysis}
+
+The performance of hash tables is generally analyzed in terms of:
+\begin{itemize}
+    \item \textbf{Load Factor ($\alpha$):} The ratio of the number of stored entries to the table size. A lower load factor means fewer collisions.
+    \item \textbf{Average Case vs. Worst Case:} Typically, operations are O(1) under the uniform hashing assumption but can degrade.
+\end{itemize}
+
+To maintain efficiency, hash tables are resized based on the load factor. This involves creating a new, larger table and rehashing all existing entries. 
+
+\subsubsection{Time Complexity}
+
+\begin{itemize}
+ \item \textbf{Sequential search (unordered list)}: Average and worst-case search, insert, delete in $\mathcal{O}(n)$.
+ \item \textbf{Binary search (ordered array)}: Average-case for search in $\mathcal{O}(\log n)$ and insert, delete in $\mathcal{O}(n)$; worst-case for all operations is $\mathcal{O}(n)$.
+ \item \textbf{Binary Search Trees (BST)}: Average-case for search and insert in $\mathcal{O}(\log n)$, delete in $\mathcal{O}(\sqrt{n})$; worst-case for all operations is $\mathcal{O}(n)$.
+ \item \textbf{Red-Black BST (balanced)}: All operations in average and worst-case in $\mathcal{O}(\log n)$.
+ \item \textbf{Separate chaining hash table}: Average-case (with good hash function and resizing) for search, insert, delete is $\Theta(1)$; worst-case is $\mathcal{O}(n)$.
+ \item \textbf{Linear probing hash table}: Average-case for search hits and insertions is $\frac{1}{2}\left(1+\frac{1}{1-\alpha}\right)$ and for search misses $\frac{1}{2}\left(1+\frac{1}{(1-\alpha)^2}\right)$ with $\alpha$ being the load factor; worst-case for all operations is $\mathcal{O}(n)$.
+\end{itemize}
+
+\subsection{Real-World Applications}
+\begin{itemize}
+    \item \textbf{File Verification:} Hashes are used to verify the integrity of files downloaded from the internet.
+    \item \textbf{Cryptograpghy}: Hash functions in cryptography are designed to be one-way, meaning they are computationally infeasible to reverse. They are used in various applications including digital signatures, message integrity checks, and blockchain technology.
+    \item \textbf{Password Storage:} Hashes store passwords securely, often using cryptographic hash functions.
+\end{itemize}
+
+\subsection{Variants and Advanced Techniques}
+\begin{itemize}
+    \item \textbf{Double Hashing:} A form of open addressing that uses a secondary hash function to resolve collisions.
+    \item \textbf{Cuckoo Hashing:} Each key can be in one of two positions, defined by two separate hash functions. Colliding keys are moved back and forth until all keys have a slot.
+    \item \textbf{Two-Probe Hashing:} Inserts the key into the shorter of two possible chains to balance chain lengths.
+\end{itemize}
+
+\subsection{Python Code Example}
+
+\begin{minted}{python}
+class Product:
+    def __init__(self, name, sku):
+        self.name = name
+        self.sku = sku  # Stock Keeping Unit, assumed to be unique
+
+    def __hash__(self):
+        # Hash based on SKU, which should be unique for each product
+        return hash(self.sku)
+
+    def __eq__(self, other):
+        # Two products are considered equal if their SKUs are equal
+        return self.sku == other.sku
+
+# Using the custom object as a dict key
+product1 = Product('Laptop', 'ABC123')
+inventory = {product1: 10}  # Product instance as key, stock quantity as value
+
+product2 = Product('Camera', 'XYZ987')
+inventory[product2] = 15  # Add another product
+
+# Retrieve values using objects as keys
+print(inventory[product1])  # Output: 10
+print(inventory[product2])  # Output: 15
+\end{minted}
+
+\section{Search Trees and Tries}
+
+\subsection{Binary Search Trees}
+
+A Binary Search Tree (BST) is defined as a binary tree that maintains symmetric order, which is detailed as follows:
+
+\begin{itemize}
+    \item A binary tree can be either empty or a node that includes links to two separate binary trees: the left subtree and the right subtree.
+    \item Symmetric order specifies that for any given node, all keys in its left subtree are less than the node's key, and all keys in its right subtree are greater. Duplicate keys are not allowed within the tree.
+\end{itemize}
+
+\subsubsection{Operational Principles}
+BST operations revolve around the principle of binary search within a tree structure:
+
+\begin{itemize}
+    \item \textbf{Search operation}: To find a key, start from the root and recursively traverse the tree, choosing the left or right subtree by comparing the search key with the current node's key until the key is found or a null link is reached.
+    \item \textbf{Insert operation}: To insert a new key, follow a similar path as the search operation. When a null link is encountered, insert a new node with the key at that position.
+\end{itemize}
+
+\subsubsection{Implementation}
+A BST is typically implemented as follows:
+\begin{itemize}
+    \item A class `Node` encapsulates the tree's node structure, holding the key, value, and references to the left and right child nodes.
+    \item The BST itself is represented by a reference to the root node of the tree.
+    \item Keys must be comparable to allow for ordering within the tree.
+\end{itemize}
+
+\subsubsection{Mathematical Analysis and Complexity}
+
+The shape of a BST, and consequently its operational efficiency, is highly dependent on the order of key insertions. While the average case complexity for search and insert operations is logarithmic, the worst-case scenario can degrade to linear complexity, especially in the case of sequential or sorted insertions.
+
+\begin{itemize}
+    \item The expected number of compares for search or insert operations in a BST with $n$ distinct keys inserted in random order is $\sim 2 \ln n$.
+    \item The expected height of such a BST is $\sim 4.31107 \ln n$.
+\end{itemize}
+
+\subsection{Iteration}
+
+\subsubsection{Inorder Traversal}
+Inorder traversal is a systematic method of traversing a binary search tree (BST) that ensures keys are processed in ascending order:
+
+\begin{itemize}
+    \item Traverse the left subtree recursively.
+    \item Enqueue the current node's key (visit the node).
+    \item Traverse the right subtree recursively.
+\end{itemize}
+
+This traversal method guarantees that keys are accessed in non-decreasing order due to the inherent properties of BSTs. The operation complexity for visiting all $n$ nodes is $\Theta(n)$, as each node requires $\Theta(1)$ time.
+
+\subsubsection{Level-order Traversal}
+Level-order traversal processes nodes of the tree level by level, in a breadth-first manner, starting from the root. This method ensures that all nodes at depth $d$ are processed before any node at depth $d+1$. The steps are as follows:
+
+\begin{itemize}
+    \item Start with the root node.
+    \item Move to the children of the current node, processing each from left to right.
+    \item Continue with the grandchildren of the root, and so on, for all subsequent levels.
+\end{itemize}
+
+\subsection{Ordered operations}
+
+\subsubsection{Minimum and Maximum Keys}
+The minimum key in a Binary Search Tree (BST) is found by traversing left from the root until a null left child is encountered. 
+
+The maximum key is found by traversing right until a null right child is encountered. This process exploits the BST property where all keys in the left subtree are smaller, and all keys in the right subtree are larger than the node's key.
+
+\subsubsection{Floor and Ceiling Keys}
+The floor of a query key in a BST is the largest key in the BST that is less than or equal to the query key. The ceiling is the smallest key in the BST that is greater than or equal to the query key.
+
+The process for finding the floor or ceiling of a key involves:
+\begin{itemize}
+    \item Searching for the key within the BST.
+    \item Keeping track of potential floor or ceiling candidates along the search path, where candidates improve as the search progresses deeper into the tree.
+\end{itemize}
+
+\subsubsection{Implementation of Floor Calculation}
+
+To compute the floor value for a given key, one can use recursion to traverse the BST, updating the "champion" (best candidate for the floor) as the search goes on. This process adheres to two invariants: 
+
+\begin{itemize}
+    \item The current best candidate for the floor is either the "champion" or located in the subtree rooted at the current node.
+    \item The search continues in the right subtree if the current node's key is less than the search key, ensuring the "champion" is always to the left of the search path for the floor calculation.
+\end{itemize}
+
+\begin{minted}{python}
+def floor(node, key, champ=None):
+    if node is None:
+        return champ
+    if key < node.key:
+        return floor(node.left, key, champ)
+    elif key > node.key:
+        return floor(node.right, key, node.key)
+    else:
+        return node.key
+\end{minted}
+
+This method starts at the root of the BST, recursively moving left or right depending on how the key compares to the current node's key. The "champ" variable holds the best candidate for the floor as the search progresses, which is returned once the search ends either by finding the key or reaching a leaf node.
+
+\subsection{2-3 Search Trees}
+
+2-3 trees are a type of balanced search tree that allow for efficient search, insertion, and deletion operations. They ensure perfect balance, meaning all paths from the root to a null link have the same length, which guarantees logarithmic time complexity for basic operations. A 2-3 tree can have nodes of two types:
+
+\begin{itemize}
+    \item 2-node: Contains one key and has two children.
+    \item 3-node: Contains two keys and has three children.
+\end{itemize}
+
+This structure allows the tree to maintain symmetric order, ensuring that an inorder traversal yields keys in ascending order.
+
+\subsubsection{Search in a 2-3 Tree}
+Searching involves comparing the search key against keys in a node and recursively following the link associated with the interval containing the search key until the key is found or a null link is encountered.
+
+\subsubsection{Insertion in a 2-3 Tree}
+Insertion operations adapt to the node type encountered at the bottom of the tree:
+\begin{itemize}
+    \item In a 2-node, adding a new key converts it into a 3-node.
+    \item Inserting into a 3-node temporarily forms a 4-node, which is then split up to maintain the tree's balance. This may propagate upwards, possibly splitting the root and increasing the tree's height.
+\end{itemize}
+
+\subsubsection{2-3 Tree Performance}
+The perfect balance of 2-3 trees guarantees that the height is logarithmic relative to the number of keys $n$:
+\begin{itemize}
+    \item Minimum height: $\log_{3} n$, assuming all nodes are 3-nodes.
+    \item Maximum height: $\log_{2} n$, assuming all nodes are 2-nodes.
+    \item This makes search, insert, and delete operations run in $\Theta(\log n)$ time in the worst case.
+\end{itemize}
+
+\subsubsection{Direct Implementation Challenges}
+Directly implementing 2-3 trees is complex due to multiple node types, the need for various comparisons to navigate the tree, and the intricacies of splitting nodes. However, an alternative representation, such as red-black trees, offers a more practical approach to achieving the same benefits.
+
+\subsection{Red-black BSTs}
+
+\section*{Implementing 2-3 Trees as Binary Search Trees}
+
+Implementing 2-3 trees as binary search trees (BSTs) poses the unique challenge of accurately representing 3-nodes. Several approaches have been considered:
+
+\textbf{Approach 1}: Using two BST nodes fails to distinguish a 3-node from two separate 2-nodes, making it impossible to uniquely map a BST back to a 2-3 tree.
+
+\textbf{Approach 2}: Introducing an additional "glue" node to represent 3-nodes results in wasted space and complicates the implementation.
+
+\textbf{Approach 3 (LLRB)}: The widely adopted solution involves using two BST nodes connected by a red "glue" link. This method specifies that red links, which represent the connection within a 3-node, lean left. This arbitrary restriction simplifies the rules and operations for the tree.
+
+\subsubsection{Left-Leaning Red-Black (LLRB) Binary Search Trees}
+
+Left-leaning red-black BSTs offer a practical way to implement 2-3 trees as BSTs. They use internal left-leaning red links to represent the middle child of a 3-node, achieving a 1-1 correspondence with 2-3 trees.
+
+\subsubsection{Properties of LLRB Trees}
+LLRB trees maintain several critical properties that ensure balanced tree structure and efficient operations:
+
+\begin{itemize}
+    \item \textbf{Symmetric Order}: The tree maintains BST properties, ensuring that elements are in order.
+    \item \textbf{No Node with Two Red Links}: Ensures that the tree can be represented as a combination of 2-nodes and 3-nodes.
+    \item \textbf{Red Links Lean Left}: Simplifies the implementation and maintains a direct relationship with 2-3 trees.
+    \item \textbf{Balanced Black Links}: Every path from the root to a null link has the same number of black links, ensuring perfect balance.
+\end{itemize}
+
+\subsection{Red-black BST operations}
+
+\subsubsection{Search Operation}
+The search operation in a Red-Black Tree ignores the color of the nodes and follows the standard Binary Search Tree (BST) protocol:
+\begin{verbatim}
+    while node is not null:
+        if key < node.key: move to the left child
+        elif key > node.key: move to the right child
+        else: return the value associated with the key
+\end{verbatim}
+This property simplifies the search process, making it identical to that in a BST.
+
+\subsubsection{Insertion Overview}
+Inserting into a RBT involves adding nodes as in a standard BST and coloring the new links red. To maintain the red-black properties, the tree may need adjustments:
+
+\begin{itemize}
+    \item If a node has two red children, perform a color flip.
+    \item If there's a right-leaning red link, rotate it left.
+    \item If there are two left-leaning red links in succession, rotate the top node right.
+\end{itemize}
+
+\subsection{Python Implementation Example}
+Below is the Python code for inserting into an LLRB tree, demonstrating the adjustments needed to maintain balance:
+
+\begin{minted}{python}
+class Node:
+    def __init__(self, key, val, color=True):  # Node initialization, default color is red
+        self.key = key
+        self.val = val
+        self.left = None
+        self.right = None
+        self.color = color
+
+class LLRB:
+    def is_red(self, node):  # Check if node is red
+        if node is None:
+            return False
+        return node.color == True
+
+    def rotate_left(self, h):  # Rotate left at node h
+        x = h.right
+        h.right = x.left
+        x.left = h
+        x.color = h.color
+        h.color = True
+        return x
+
+    def rotate_right(self, h):  # Rotate right at node h
+        x = h.left
+        h.left = x.right
+        x.right = h
+        x.color = h.color
+        h.color = True
+        return x
+
+    def flip_colors(self, h):  # Flip colors to split a 4-node
+        h.color = True
+        h.left.color = False
+        h.right.color = False
+
+    def insert(self, h, key, val):  # Insert key-value pair
+        if h is None:
+            return Node(key, val)
+        if key < h.key:
+            h.left = self.insert(h.left, key, val)
+        elif key > h.key:
+            h.right = self.insert(h.right, key, val)
+        else:
+            h.val = val
+
+        if self.is_red(h.right) and not self.is_red(h.left):
+            h = self.rotate_left(h)
+        if self.is_red(h.left) and self.is_red(h.left.left):
+            h = self.rotate_right(h)
+        if self.is_red(h.left) and self.is_red(h.right):
+            self.flip_colors(h)
+
+        return h
+
+    # Insert and maintain tree balance
+    def insert_key(self, key, val):
+        self.root = self.insert(self.root, key, val)
+        self.root.color = False  # Root is always black
+\end{minted}
 
 \end{document}
