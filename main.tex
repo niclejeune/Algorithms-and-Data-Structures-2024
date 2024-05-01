@@ -340,10 +340,10 @@ class ArrayStack:
         self.a = copy
 
     def push(self, item):
-        s = self.s
-        if self.n == len(s):
-            self.__resize(2 * len(s))
-        s[self.n] = item
+        a = self.a
+        if self.n == len(a):
+            self.__resize(2 * len(a))
+        a[self.n] = item
         self.n += 1
         
     def pop(self):
@@ -1755,5 +1755,424 @@ class LLRB:
         self.root = self.insert(self.root, key, val)
         self.root.color = False  # Root is always black
 \end{minted}
+
+\section{Qucksort and Radix sort}
+
+\subsection{Quicksort}
+
+Quicksort involves three main steps: 
+\begin{enumerate}
+  \item Shuffle the array to guarantee performance.
+  \item Partition the array using an element $a[j]$, ensuring:
+    \begin{itemize}
+      \item $a[j]$ is correctly positioned.
+      \item All elements left of $j$ are not larger than $a[j]$.
+      \item All elements right of $j$ are not smaller than $a[j]$.
+    \end{itemize}
+  \item Recursively sort the subarrays formed by the partition.
+\end{enumerate}
+
+\subsubsection{Partitioning}
+
+The partitioning process involves:
+\begin{itemize}
+  \item Repeatedly moving two indices, $i$ and $j$, toward each other.
+  \item $i$ moves right skipping elements less than the pivot, $a[lo]$.
+  \item $j$ moves left skipping elements greater than the pivot.
+  \item Swap $a[i]$ and $a[j]$ when both indices stop.
+  \item Stop when $i$ and $j$ cross, then swap $a[lo]$ with $a[j]$.
+\end{itemize}
+
+In-place partitioning avoids extra space and should be used but complicates stability. Loop termination requires careful checking to avoid accessing out-of-bounds.
+
+\subsubsection{Analysis}
+
+The worst-case scenario for Quicksort occurs with approximately $\frac{1}{2} n^2$ comparisons. This case is highly unlikely unless there is a flaw in the shuffling mechanism or it is omitted entirely. 
+
+\textbf{Proposition:} The expected number of comparisons $C_n$ needed to quicksort an array of $n$ distinct keys is approximately $2n \ln n$, and the expected number of exchanges is about $\frac{1}{3} n \ln n$.
+
+The recursive formula for $C_n$ is given by $C_0 = C_1 = 0$ and for $n \geq 2$:
+
+\[
+n C_{n} = n(n+1) + 2\left(C_{0} + C_{1} + \ldots + C_{n-1}\right)
+\]
+
+By subtracting the equation for $n-1$ from this and rearranging terms, we derive:
+
+\[
+\frac{C_{n}}{n+1} = \frac{C_{n-1}}{n} + \frac{2}{n+1}
+\]
+
+This equation implies:
+
+\[
+\frac{C_{n}}{n+1} = \frac{2}{3} + \frac{2}{4} + \frac{2}{5} + \ldots + \frac{2}{n+1}
+\]
+
+This sum approximates the integral:
+
+\[
+C_{n} = 2(n+1)\left(\frac{1}{3} + \frac{1}{4} + \frac{1}{5} + \ldots + \frac{1}{n+1}\right) \approx 2(n+1) \int_{3}^{n+1} \frac{1}{x} dx
+\]
+
+Thus, the final approximation is:
+
+\[
+C_{n} \sim 2(n+1) \ln n \approx 1.39 n \lg n
+\]
+
+These analyses confirm that while the worst case is improbable and mainly theoretical, the average case performance of Quicksort is highly efficient, aligning with $\Theta(n \log n)$ computational complexity.
+
+\subsection{Radix sort}
+
+\subsubsection{LSD}
+
+LSD (Least-Significant-Digit-First) Radix Sort examines characters of $n$ fixed-length $w$ strings from right to left, applying a stable key-indexed counting sort based on each character. It correctly sorts by expanding the sorted sequence from the least significant to the most significant character, maintaining order due to the stability of the counting sort. The complexity of sorting is $\Theta(w(n+R))$, where $R$ is the range of the character set. This method requires $\Theta(n+R)$ additional space and preserves the order of equal elements, hence it is stable. This sort is particularly efficient when all keys are of the same length and character comparisons are dominant in determining order.
+
+\subsubsection{Reverse LSD and MSD}
+
+MSD (Most-Significant-Digit-First) Radix Sort processes strings character by character from left to right, utilizing a stable key-indexed counting method. This sort effectively manages sorting by partitioning strings into $R$ subarrays according to the first character, then recursively sorting these subarrays while excluding the previously considered characters. It is highly efficient for diverse inputs due to its method of focusing sorting efforts only where differences occur, minimizing unnecessary comparisons. MSD Radix Sort has a time complexity of $\Theta(n \log_R n)$ for random strings and requires $\Theta(n+wR)$ extra space in the worst case, making it suitable for scenarios with variable-length strings or significant diversity in the initial characters of the strings.
+
+\subsection{Python Code Examples}
+
+\paragraph{Quicksort}
+\begin{minted}{python}
+import random
+
+def shuffle(arr):
+    n = len(arr)
+    for i in range(n):
+        swap_index = random.randrange(i, n)
+        arr[i], arr[swap_index] = arr[swap_index], arr[i]
+
+def quicksort(arr, lo, hi):
+    if lo < hi:
+        p = partition(arr, lo, hi)
+        quicksort(arr, lo, p - 1)
+        quicksort(arr, p + 1, hi)
+
+def partition(arr, lo, hi):
+    pivot = arr[hi]
+    i = lo
+    for j in range(lo, hi):
+        if arr[j] < pivot:
+            arr[i], arr[j] = arr[j], arr[i]
+            i += 1
+    arr[i], arr[hi] = arr[hi], arr[i]
+    return i
+\end{minted}
+
+\paragraph{LSD}
+\begin{minted}{python}
+def lsd_radix_sort(array):
+    if not array:
+        return array
+
+    # Determine the maximum length of the strings in the array
+    max_len = max(len(s) for s in array)
+
+    # Perform counting sort on each digit from least significant to most significant
+    for i in range(max_len - 1, -1, -1):
+        # Initialize buckets for each possible character plus one for shorter strings
+        buckets = {chr(j): [] for j in range(256)}  # ASCII range for characters
+        buckets['\0'] = []  # Bucket for shorter strings
+        
+        for string in array:
+            key = string[i] if i < len(string) else '\0'
+            buckets[key].append(string)
+
+        # Collect strings back from buckets in order
+        array = []
+        for key in sorted(buckets.keys()):
+            array.extend(buckets[key])
+
+    return array
+\end{minted}
+
+\paragraph{MSD}
+\begin{minted}{python}
+def msd_radix_sort(array, index=0):
+    if len(array) <= 1:
+        return array
+
+    # Terminating condition for recursion
+    max_len = max((len(s) for s in array), default=0)
+    if index >= max_len:
+        return array
+
+    # Initialize buckets for each character, plus one for shorter strings
+    buckets = {}
+    for string in array:
+        key = string[index] if index < len(string) else '\0'  # Use null character for empty slots
+        if key not in buckets:
+            buckets[key] = []
+        buckets[key].append(string)
+
+    # Recursively sort each bucket and collect the results
+    sorted_array = []
+    for key in sorted(buckets.keys()):
+        sorted_array.extend(msd_radix_sort(buckets[key], index + 1))
+
+    return sorted_array
+\end{minted}
+
+\section{Minimum Spanning Trees}
+
+An edge-weighted graph API manages graphs where each edge has an associated weight. Kruskal's and Prim's algorithms effectively find a minimum spanning tree (MST) in such graphs. These algorithms are essential for practical applications like designing efficient network paths with minimal cost. 
+\textbf{A spanning tree of a graph $G$ is a connected and acyclic subgraph that includes all the vertices of $G$.}
+The MST problem seeks a spanning tree with the minimum total edge weight in a connected, undirected graph. T
+
+his MST is crucial in various applications such as electrical, computer, telecommunication, and transportation network design, where costs are associated with edge weights. Moreover, the MST approach aids in hierarchical clustering, where it clusters data points (e.g., cancer tissues) based on minimum dissimilarities among them, represented by the edge weights.
+
+\subsection{Cut Property}
+For simplicity in analyzing minimum spanning trees (MSTs), we assume that the graph is connected, ensuring the existence of an MST, and that the edge weights are distinct, guaranteeing a unique MST. Current algorithms handle duplicate weights effectively.
+
+A cut in a graph separates the vertices into two non-empty sets. A crossing edge links vertices from these different sets. The cut property states that the minimum weight edge that crosses any cut is part of the MST. This is because, if it were excluded, adding this edge to the MST would form a cycle, allowing us to remove a heavier edge from this cycle, resulting in a lighter spanning tree, which contradicts the minimality of the original tree.
+
+The process to compute an MST using the cut property follows:
+\begin{enumerate}
+  \item Start with an empty set $T$.
+  \item Repeat until $T$ includes $V-1$ edges:
+    \begin{itemize}
+      \item Identify a cut in the graph.
+      \item Select the minimum weight crossing edge of this cut.
+      \item Add this edge to $T$.
+    \end{itemize}
+  \item This procedure ensures all edges selected are optimal per the cut property, resulting in an MST.
+\end{enumerate}
+
+Efficiency in these algorithms depends on the method used to find the cuts and the minimum weight crossing edges, with Kruskal’s, Prim's, and Borůvka’s algorithms providing different optimized approaches for these tasks.
+
+\subsection{Kruskal's algorithm}
+
+Kruskal's Algorithm effectively computes the Minimum Spanning Tree (MST) of a graph by considering edges in ascending order of their weights. It adds an edge to the MST if it does not form a cycle with the already selected edges, ensuring the resultant structure remains acyclic.
+
+\subsubsection{Algorithm Steps}
+\begin{enumerate}
+  \item Sort all the edges of the graph by their weights.
+  \item Initialize MST as empty.
+  \item Traverse the sorted edge list:
+    \begin{itemize}
+      \item Add the current edge to MST if it connects two distinct components (no cycle is formed).
+      \item Use the Union-Find data structure to check and manage components.
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection{Proof of Correctness}
+\textbf{Proposition:} Kruskal's algorithm computes the MST.
+\begin{proof}
+Consider two cases for any edge $e = (v, w)$:
+\begin{itemize}
+  \item \textbf{Case 1:} Edge $e$ is added to $T$. Here, vertices $v$ and $w$ are in different connected components, ensuring no cycle formation. The edge $e$ must be a minimum crossing edge between these components, satisfying the cut property of MSTs.
+  \item \textbf{Case 2:} Edge $e$ is not added as it forms a cycle. This ensures that all edges in $T$ are part of the MST and no cycles are introduced.
+\end{itemize}
+\end{proof}
+
+\subsubsection{Implementation Considerations}
+To implement Kruskal's algorithm efficiently:
+\begin{itemize}
+  \item Use a union-find structure to manage connected components.
+  \item Use path compression and union by rank to optimize the find and union operations.
+\end{itemize}
+
+\subsubsection{Time Complexity}
+\textbf{Running Time:} $\Theta(E \log E)$ for sorting edges and $\Theta(E \log V)$ for union-find operations. Hence, the total running time is dominated by edge sorting, making it $\Theta(E \log E)$.
+
+\subsection{Prim's algorithm}
+
+Prim's algorithm computes a minimum spanning tree (MST) for a connected weighted graph by starting with a single vertex and repeatedly adding the lowest weight edge that connects a vertex in the tree to a vertex outside the tree until all vertices are included.
+
+\subsubsection{Algorithm Steps}
+\begin{enumerate}
+  \item Initialize the MST with any single vertex, designated as the starting point.
+  \item Repeat until the MST spans all vertices:
+  \begin{itemize}
+    \item Select the minimum weight edge that has exactly one endpoint in the MST.
+    \item Add the selected edge and the adjacent vertex to the MST.
+  \end{itemize}
+\end{enumerate}
+
+\subsubsection{Proof of Correctness}
+\textbf{Proposition:} Prim's algorithm generates the MST.
+\begin{proof}
+Let $e$ be the minimum weight edge with one endpoint in the current tree $T$. The cut defined by the vertices in $T$ and those not in $T$ implies by the cut property that $e$ is the lightest edge crossing the cut and thus must be part of the MST.
+\end{proof}
+
+\subsubsection{Implementation}
+
+\textbf{Efficient Edge Selection:} The key challenge is quickly finding the minimum weight edge connecting the tree to any external vertex. This is efficiently managed using a priority queue.
+
+\paragraph{Lazy Implementation}
+In the lazy approach:
+\begin{itemize}
+  \item A priority queue (PQ) is used to lazily store edges with one endpoint in $T$.
+  \item Edges are removed from the PQ until one with a valid external vertex is found.
+  \item The process involves significant redundancy in edge consideration.
+\end{itemize}
+
+\paragraph{Eager Implementation}
+In the eager approach:
+\begin{itemize}
+  \item Each vertex not in $T$ is associated in a PQ with the minimum weight edge that connects it to $T$.
+  \item This setup reduces unnecessary operations and speeds up the algorithm.
+\end{itemize}
+
+\subsubsection{Running Time Analysis}
+\paragraph{Lazy Implementation:} Time complexity is $\Theta(E \log E)$ due to the operations on the PQ.
+\paragraph{Eager Implementation:} More efficient with a time complexity of $\Theta(E \log V)$, achieved by maintaining a direct connection to the minimum weight edges.
+
+\subsubsection{Priority Queue Implementations}
+Different priority queue implementations can dramatically affect performance:
+\begin{itemize}
+  \item \textbf{Binary Heap:} Provides a balanced approach with operations taking $\log V$ time.
+  \item \textbf{Fibonacci Heap:} Offers amortized $O(1)$ time for decrease-key operations, making it optimal for dense graphs.
+\end{itemize}
+
+\subsubsection{Indexed Priority Queues}
+Crucial for the eager implementation, indexed priority queues allow for efficient decrease-key operations, which are essential for updating edge weights as the algorithm progresses.
+
+\subsection{Python Code Examples}
+
+\paragraph{Kruskal's}
+
+\begin{minted}{python}
+import sys
+from queue import PriorityQueue
+
+# For simplicity, we use basic Union-Find, but Weighted Quick-Union is optimal
+class UnionFind:
+    def __init__(self, size):
+        self.root = list(range(size))
+        self.rank = [1] * size
+
+    def find(self, x):
+        if self.root[x] != x:
+            self.root[x] = self.find(self.root[x])
+        return self.root[x]
+
+    def union(self, x, y):
+        rootX = self.find(x)
+        rootY = self.find(y)
+
+        if rootX != rootY:
+            if self.rank[rootX] > self.rank[rootY]:
+                self.root[rootY] = rootX
+            elif self.rank[rootX] < self.rank[rootY]:
+                self.root[rootX] = rootY
+            else:
+                self.root[rootY] = rootX
+                self.rank[rootX] += 1
+
+    def connected(self, x, y):
+        return self.find(x) == self.find(y)
+
+class Edge:
+    def __init__(self, u, v, weight):
+        self.u = u
+        self.v = v
+        self.weight = weight
+
+    def __lt__(self, other):
+        return self.weight < other.weight
+
+class Graph:
+    def __init__(self, vertices):
+        self.V = vertices
+        self.edges = []
+
+    def add_edge(self, u, v, weight):
+        self.edges.append(Edge(u, v, weight))
+
+class KruskalMST:
+    def __init__(self, graph):
+        self.mst_weight = 0
+        self.mst_edges = []
+        self.graph = graph
+
+    def find_mst(self):
+        # Sort edges based on weight
+        pq = PriorityQueue()
+        for edge in self.graph.edges:
+            pq.put(edge)
+
+        # Create a union-find structure to track connected components
+        uf = UnionFind(self.graph.V)
+
+        # Process edges in ascending order
+        while not pq.empty() and len(self.mst_edges) < self.graph.V - 1:
+            edge = pq.get()
+            if not uf.connected(edge.u, edge.v):
+                uf.union(edge.u, edge.v)
+                self.mst_edges.append(edge)
+                self.mst_weight += edge.weight
+
+        return self.mst_edges, self.mst_weight
+\end{minted}
+
+\paragraph{Prim's}
+
+\begin{minted}{python}
+import sys
+import math
+from heapq import heappop, heappush
+
+class Edge:
+    def __init__(self, v, w, weight):
+        self.v = v
+        self.w = w
+        self.weight = weight
+
+    def __lt__(self, other):
+        return self.weight < other.weight
+
+    def either(self):
+        return self.v
+
+    def other(self, vertex):
+        return self.w if vertex == self.v else self.v
+
+class Graph:
+    def __init__(self, vertices):
+        self.V = vertices
+        self.adjacency_list = [[] for _ in range(vertices)]
+
+    def add_edge(self, v, w, weight):
+        edge = Edge(v, w, weight)
+        self.adjacency_list[v].append(edge)
+        self.adjacency_list[w].append(edge)
+
+class PrimMST:
+    def __init__(self, graph):
+        self.graph = graph
+        self.edge_to = [None] * graph.V
+        self.dist_to = [float('inf')] * graph.V
+        self.marked = [False] * graph.V
+        self.pq = []
+
+        # Start from vertex 0
+        self.dist_to[0] = 0
+        heappush(self.pq, (0, 0))  # (weight, vertex)
+
+        while self.pq:
+            self.visit(graph, heappop(self.pq)[1])
+
+    def visit(self, graph, v):
+        self.marked[v] = True
+        for edge in graph.adjacency_list[v]:
+            w = edge.other(v)
+            if self.marked[w]:
+                continue
+            if edge.weight < self.dist_to[w]:
+                self.dist_to[w] = edge.weight
+                self.edge_to[w] = edge
+                heappush(self.pq, (self.dist_to[w], w))
+
+    def edges(self):
+        return [e for e in self.edge_to if e]
+
+    def weight(self):
+        return sum(e.weight for e in self.edges() if e)
+\end{minted}
+
 
 \end{document}
